@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEU Proposal Builder</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo-box">NEU</div>
+      <div>
+        <h1>NEU Electrical Solutions</h1>
+        <p>Proposal Builder</p>
+      </div>
+    </div>
+    <nav>
+      <a href="index.html" class="active">Proposal</a>
+      <a href="pricing.html">Price Book</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <div class="grid two">
+        <label>Customer Name<input id="customerName" type="text" /></label>
+        <label>Proposal Number<input id="proposalNumber" type="text" /></label>
+        <label>Customer Address<input id="customerAddress" type="text" /></label>
+        <label>Date<input id="proposalDate" type="date" /></label>
+        <label class="full">Job Address<input id="jobAddress" type="text" /></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Quick Description</h2>
+      <div class="quick-entry">
+        <input id="quickText" type="text" placeholder="Example: Run one 20 amp circuit with 4 receptacles" />
+        <button id="parseBtn">Add From Text</button>
+      </div>
+      <p class="hint">The first version recognizes common phrases for 20-amp circuits and receptacles.</p>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <h2>Line Items</h2>
+        <button id="addRowBtn">+ Add Line Item</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Qty</th>
+              <th>Internal Cost</th>
+              <th>Selling Price</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lineItems"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="summary-grid">
+      <div class="card">
+        <h2>Notes / Scope</h2>
+        <textarea id="notes" rows="7" placeholder="Enter proposal notes, exclusions, or scope details..."></textarea>
+      </div>
+      <div class="card totals">
+        <div><span>Selling Total</span><strong id="sellingTotal">$0.00</strong></div>
+        <div><span>Internal Cost</span><strong id="costTotal">$0.00</strong></div>
+        <div><span>Estimated Profit</span><strong id="profitTotal">$0.00</strong></div>
+        <div class="actions">
+          <button id="saveBtn">Save Proposal</button>
+          <button id="printBtn" class="secondary">Print / PDF</button>
+          <button id="clearBtn" class="danger">Clear</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/proposal.js"></script>
+</body>
+</html>
