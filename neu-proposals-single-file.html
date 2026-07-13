@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>NEU Proposal Builder</title>
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --bg:#f3f6fb;
+      --white:#ffffff;
+      --text:#172033;
+      --muted:#64748b;
+      --border:#dfe7f0;
+      --accent:#f59e0b;
+      --green:#16835f;
+      --red:#c62828;
+      --shadow:0 18px 45px rgba(15,23,42,.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .app{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:240px 1fr;
+    }
+    .sidebar{
+      background:linear-gradient(180deg,var(--navy),#111827);
+      color:#fff;
+      padding:24px 18px;
+      display:flex;
+      flex-direction:column;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding-bottom:24px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+    }
+    .logo{
+      width:52px;
+      height:52px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      background:#fff;
+      color:var(--navy);
+      font-weight:800;
+      letter-spacing:.06em;
+      box-shadow:0 8px 22px rgba(0,0,0,.24);
+    }
+    .brand strong{display:block;font-size:15px}
+    .brand span{display:block;color:#9fb0c7;font-size:12px;margin-top:4px}
+    .side-note{
+      margin-top:auto;
+      color:#9fb0c7;
+      font-size:12px;
+      line-height:1.5;
+      padding-top:20px;
+      border-top:1px solid rgba(255,255,255,.12);
+    }
+    .main{min-width:0}
+    .topbar{
+      background:rgba(255,255,255,.95);
+      border-bottom:1px solid var(--border);
+      padding:22px 30px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      position:sticky;
+      top:0;
+      z-index:5;
+    }
+    .eyebrow{
+      margin:0 0 6px;
+      font-size:11px;
+      font-weight:800;
+      color:var(--muted);
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    h1,h2,h3,p{margin-top:0}
+    .topbar h1{margin:0;font-size:28px}
+    .actions{display:flex;gap:10px}
+    .content{
+      max-width:1320px;
+      margin:0 auto;
+      padding:28px 30px 44px;
+    }
+    .hero{
+      background:
+        radial-gradient(circle at top right,rgba(245,158,11,.22),transparent 32%),
+        linear-gradient(135deg,var(--navy),var(--navy2));
+      color:#fff;
+      border-radius:22px;
+      padding:28px;
+      display:flex;
+      justify-content:space-between;
+      gap:24px;
+      box-shadow:0 22px 50px rgba(15,23,42,.17);
+      margin-bottom:22px;
+    }
+    .hero h2{font-size:28px;margin:12px 0 8px}
+    .hero p{color:#cbd5e1;line-height:1.55;margin:0}
+    .pill{
+      display:inline-block;
+      border:1px solid rgba(245,158,11,.42);
+      color:#fbbf24;
+      background:rgba(245,158,11,.13);
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .hero-total{
+      min-width:210px;
+      align-self:center;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.07);
+      border-radius:16px;
+      padding:20px;
+    }
+    .hero-total span{display:block;color:#cbd5e1;font-size:12px}
+    .hero-total strong{display:block;font-size:30px;margin-top:8px}
+    .panel{
+      background:var(--white);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      margin-bottom:22px;
+    }
+    .panel-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .panel-head h3{margin:0;font-size:20px}
+    .kicker{
+      display:block;
+      margin-bottom:6px;
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .span2{grid-column:1/-1}
+    label{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      font-size:13px;
+      font-weight:700;
+      color:#334155;
+    }
+    input,textarea{
+      width:100%;
+      border:1px solid #cbd5e1;
+      border-radius:10px;
+      padding:12px 13px;
+      font:inherit;
+      color:var(--text);
+      background:#fff;
+      outline:none;
+    }
+    input:focus,textarea:focus{
+      border-color:#94a3b8;
+      box-shadow:0 0 0 4px rgba(148,163,184,.15);
+    }
+    textarea{min-height:180px;resize:vertical;line-height:1.5}
+    .smart{
+      display:flex;
+      gap:12px;
+    }
+    .smart input{flex:1}
+    .help{color:var(--muted);font-size:12px;margin:10px 0 0}
+    .btn{
+      border:0;
+      border-radius:10px;
+      padding:11px 16px;
+      font-weight:800;
+      cursor:pointer;
+      transition:.15s ease;
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .primary{background:var(--navy);color:#fff}
+    .secondary{background:#e6edf5;color:var(--navy)}
+    .accent{background:var(--accent);color:#111827}
+    .outline{background:#fff;color:var(--navy);border:1px solid #cbd5e1}
+    .danger{background:#fff1f1;color:var(--red);border:1px solid #ffcaca}
+    .table-wrap{
+      overflow-x:auto;
+      border:1px solid var(--border);
+      border-radius:14px;
+    }
+    table{
+      width:100%;
+      min-width:900px;
+      border-collapse:collapse;
+    }
+    th{
+      background:#f8fafc;
+      color:#475569;
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      text-align:left;
+      padding:13px;
+      border-bottom:1px solid var(--border);
+    }
+    td{
+      padding:10px 12px;
+      border-bottom:1px solid #edf2f7;
+      vertical-align:middle;
+    }
+    tr:last-child td{border-bottom:0}
+    td input{padding:10px}
+    .desc{min-width:280px}
+    .qty{width:75px}
+    .money{width:120px}
+    .line-total{font-weight:800;white-space:nowrap}
+    .delete-row{
+      background:#fff;
+      color:var(--red);
+      border:1px solid #ffcaca;
+      border-radius:8px;
+      padding:8px 10px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .bottom{
+      display:grid;
+      grid-template-columns:1.55fr .85fr;
+      gap:22px;
+    }
+    .summary{
+      height:max-content;
+      position:sticky;
+      top:108px;
+    }
+    .summary-row{
+      display:flex;
+      justify-content:space-between;
+      padding:15px 0;
+      border-bottom:1px solid var(--border);
+    }
+    .summary-row span{color:#475569}
+    .summary-row strong{font-size:18px}
+    .profit{
+      margin-top:8px;
+      padding:16px;
+      border-radius:12px;
+      background:#eefbf5;
+      border:1px solid #bfead6;
+    }
+    .profit span,.profit strong{color:var(--green)}
+    .summary-actions{display:grid;gap:10px;margin-top:18px}
+    @media(max-width:900px){
+      .app{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .bottom{grid-template-columns:1fr}
+      .summary{position:static}
+    }
+    @media(max-width:680px){
+      .topbar{padding:18px;align-items:flex-start}
+      .actions{flex-direction:column}
+      .content{padding:18px 12px 30px}
+      .hero{flex-direction:column}
+      .hero-total{width:100%}
+      .grid{grid-template-columns:1fr}
+      .span2{grid-column:auto}
+      .smart{flex-direction:column}
+      .panel{padding:17px}
+      .panel-head{align-items:flex-start;flex-direction:column}
+    }
+    @media print{
+      body{background:#fff}
+      .sidebar,.actions,.smart,.help,.btn,.delete-row{display:none!important}
+      .app{display:block}
+      .topbar{position:static;border:0;padding:10px 0}
+      .content{max-width:none;padding:0}
+      .hero{
+        background:#fff;
+        color:#111827;
+        box-shadow:none;
+        border:1px solid #cbd5e1;
+        padding:18px;
+      }
+      .hero p{color:#475569}
+      .panel{box-shadow:none;border:1px solid #cbd5e1;break-inside:avoid}
+      input,textarea{border:0;padding:0;box-shadow:none!important}
+      .summary{position:static}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">NEU</div>
+        <div>
+          <strong>NEU Electrical</strong>
+          <span>Proposal Builder</span>
+        </div>
+      </div>
+      <div class="side-note">
+        Professional estimating and proposal tools for NEU Electrical Solutions.
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Estimate workspace</p>
+          <h1>Create Proposal</h1>
+        </div>
+        <div class="actions">
+          <button class="btn secondary" onclick="saveProposal()">Save Draft</button>
+          <button class="btn primary" onclick="window.print()">Print / PDF</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="hero">
+          <div>
+            <span class="pill">Draft Proposal</span>
+            <h2>Build a clear, accurate electrical proposal.</h2>
+            <p>Enter customer details, add line items, adjust pricing, and print a polished customer-ready proposal.</p>
+          </div>
+          <div class="hero-total">
+            <span>Estimated Total</span>
+            <strong id="heroTotal">$0.00</strong>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <span class="kicker">Client details</span>
+              <h3>Proposal Information</h3>
+            </div>
+          </div>
+          <div class="grid">
+            <label>Customer Name
+              <input id="customerName" placeholder="Customer or company name">
+            </label>
+            <label>Proposal Number
+              <input id="proposalNumber" placeholder="NEU-1001">
+            </label>
+            <label>Customer Address
+              <input id="customerAddress" placeholder="Billing address">
+            </label>
+            <label>Proposal Date
+              <input id="proposalDate" type="date">
+            </label>
+            <label class="span2">Job Address
+              <input id="jobAddress" placeholder="Project location">
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <span class="kicker">Smart entry</span>
+              <h3>Add Scope From Description</h3>
+            </div>
+          </div>
+          <div class="smart">
+            <input id="quickText" placeholder="Example: Run one 20 amp circuit with 4 receptacles">
+            <button class="btn accent" onclick="parseText()">Add to Proposal</button>
+          </div>
+          <p class="help">The starter recognizes 20-amp circuits and receptacle quantities.</p>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <span class="kicker">Scope & pricing</span>
+              <h3>Proposal Line Items</h3>
+            </div>
+            <button class="btn outline" onclick="addRow()">+ Add Line Item</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Qty</th>
+                  <th>Internal Cost</th>
+                  <th>Selling Price</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="lineItems"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="bottom">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span class="kicker">Customer-facing scope</span>
+                <h3>Notes & Exclusions</h3>
+              </div>
+            </div>
+            <textarea id="notes" placeholder="Describe scope, exclusions, assumptions, payment terms, and schedule..."></textarea>
+          </section>
+
+          <section class="panel summary">
+            <div class="panel-head">
+              <div>
+                <span class="kicker">Financial summary</span>
+                <h3>Proposal Totals</h3>
+              </div>
+            </div>
+            <div class="summary-row">
+              <span>Selling Total</span>
+              <strong id="sellingTotal">$0.00</strong>
+            </div>
+            <div class="summary-row">
+              <span>Internal Cost</span>
+              <strong id="costTotal">$0.00</strong>
+            </div>
+            <div class="summary-row profit">
+              <span>Estimated Profit</span>
+              <strong id="profitTotal">$0.00</strong>
+            </div>
+            <div class="summary-actions">
+              <button class="btn primary" onclick="saveProposal()">Save Proposal</button>
+              <button class="btn danger" onclick="clearProposal()">Clear Proposal</button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const tbody = document.getElementById('lineItems');
+
+    const defaultPrices = {
+      circuit20: { cost: 220, price: 450 },
+      receptacle: { cost: 28, price: 125 }
+    };
+
+    function money(value){
+      return new Intl.NumberFormat('en-US',{
+        style:'currency',
+        currency:'USD'
+      }).format(Number(value) || 0);
+    }
+
+    function addRow(item = {}){
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input class="desc" placeholder="Describe work or material"></td>
+        <td><input class="qty" type="number" min="0" step="1" value="${item.qty ?? 1}"></td>
+        <td><input class="cost money" type="number" min="0" step="0.01" value="${item.cost ?? 0}"></td>
+        <td><input class="price money" type="number" min="0" step="0.01" value="${item.price ?? 0}"></td>
+        <td class="line-total">$0.00</td>
+        <td><button class="delete-row">Delete</button></td>
+      `;
+      row.querySelector('.desc').value = item.description || '';
+      row.querySelectorAll('input').forEach(input => input.addEventListener('input', calculate));
+      row.querySelector('.delete-row').addEventListener('click', () => {
+        row.remove();
+        calculate();
+      });
+      tbody.appendChild(row);
+      calculate();
+    }
+
+    function calculate(){
+      let selling = 0;
+      let cost = 0;
+
+      [...tbody.rows].forEach(row => {
+        const qty = Number(row.querySelector('.qty').value) || 0;
+        const unitCost = Number(row.querySelector('.cost').value) || 0;
+        const unitPrice = Number(row.querySelector('.price').value) || 0;
+        const total = qty * unitPrice;
+
+        selling += total;
+        cost += qty * unitCost;
+        row.querySelector('.line-total').textContent = money(total);
+      });
+
+      document.getElementById('sellingTotal').textContent = money(selling);
+      document.getElementById('costTotal').textContent = money(cost);
+      document.getElementById('profitTotal').textContent = money(selling - cost);
+      document.getElementById('heroTotal').textContent = money(selling);
+    }
+
+    function parseText(){
+      const input = document.getElementById('quickText');
+      const text = input.value.toLowerCase().trim();
+      if(!text) return;
+
+      let added = false;
+
+      if(text.includes('20 amp') || text.includes('20-amp')){
+        addRow({
+          description:'Furnish and install one new 20-amp branch circuit',
+          qty:1,
+          cost:defaultPrices.circuit20.cost,
+          price:defaultPrices.circuit20.price
+        });
+        added = true;
+      }
+
+      const receptacles = text.match(/(\d+)\s+receptacle/);
+      if(receptacles){
+        addRow({
+          description:'Furnish and install standard duplex receptacle',
+          qty:Number(receptacles[1]),
+          cost:defaultPrices.receptacle.cost,
+          price:defaultPrices.receptacle.price
+        });
+        added = true;
+      }
+
+      if(!added){
+        addRow({
+          description:input.value,
+          qty:1,
+          cost:0,
+          price:0
+        });
+      }
+
+      input.value = '';
+    }
+
+    function getProposal(){
+      return {
+        customerName:document.getElementById('customerName').value,
+        proposalNumber:document.getElementById('proposalNumber').value,
+        customerAddress:document.getElementById('customerAddress').value,
+        proposalDate:document.getElementById('proposalDate').value,
+        jobAddress:document.getElementById('jobAddress').value,
+        notes:document.getElementById('notes').value,
+        items:[...tbody.rows].map(row => ({
+          description:row.querySelector('.desc').value,
+          qty:Number(row.querySelector('.qty').value) || 0,
+          cost:Number(row.querySelector('.cost').value) || 0,
+          price:Number(row.querySelector('.price').value) || 0
+        }))
+      };
+    }
+
+    function saveProposal(){
+      localStorage.setItem('neuProposal', JSON.stringify(getProposal()));
+      alert('Proposal saved in this browser.');
+    }
+
+    function loadProposal(){
+      document.getElementById('proposalDate').value = new Date().toISOString().slice(0,10);
+
+      const saved = localStorage.getItem('neuProposal');
+      if(!saved){
+        addRow();
+        return;
+      }
+
+      const proposal = JSON.parse(saved);
+      ['customerName','proposalNumber','customerAddress','proposalDate','jobAddress','notes']
+        .forEach(id => {
+          if(proposal[id] !== undefined){
+            document.getElementById(id).value = proposal[id];
+          }
+        });
+
+      (proposal.items || []).forEach(addRow);
+      if(!proposal.items || !proposal.items.length) addRow();
+    }
+
+    function clearProposal(){
+      if(!confirm('Clear this proposal?')) return;
+      localStorage.removeItem('neuProposal');
+      location.reload();
+    }
+
+    document.getElementById('quickText').addEventListener('keydown', event => {
+      if(event.key === 'Enter') parseText();
+    });
+
+    loadProposal();
+  </script>
+</body>
+</html>
