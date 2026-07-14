@@ -275,15 +275,6 @@ td input,td select{padding:8px 9px}
     </div>
   </div>
 
-  <div class="card no-print">
-    <div class="section-head"><div><span class="kicker">Smart scope</span><h3>Add From Description</h3></div></div>
-    <div class="search-row">
-      <input id="quickText" placeholder="Example: Install two dedicated 20 amp circuits and six receptacles">
-      <button class="btn btn-gold" onclick="parseSmartText()">Add to Proposal</button>
-    </div>
-    <div class="hint">The parser recognizes quantities written as numbers or words and matches common electrical materials.</div>
-  </div>
-
   <div class="card">
     <div class="section-head">
       <div><span class="kicker">Line items</span><h3>Proposal Materials</h3></div>
@@ -478,7 +469,6 @@ td input,td select{padding:8px 9px}
       <label class="span-2">Material Name<input id="materialName"></label>
       <label>Category<input id="materialCategory"></label>
       <label>Unit Cost<input id="materialCost" type="number" min="0" step="0.01"></label>
-      <label class="span-2"><span>Aliases for Smart Entry</span><input id="materialAliases" placeholder="Example: receptacle, outlet, duplex"></label>
     </div>
     <div class="modal-actions">
       <button class="btn btn-light" onclick="closeModal('materialModal')">Cancel</button>
@@ -517,11 +507,11 @@ const cleanJobName=value=>{
 };
 
 let materials=DB.get('neuMaterialsV3',[
-  {id:uid(),name:'20A Circuit',category:'Branch Circuits',cost:185,aliases:['20 amp circuit','20a circuit','dedicated circuit']},
-  {id:uid(),name:'Duplex Receptacle',category:'Devices',cost:12,aliases:['receptacle','receptacles','outlet','outlets','duplex']},
-  {id:uid(),name:'GFCI Receptacle',category:'Devices',cost:24,aliases:['gfci','gfci receptacle']},
-  {id:uid(),name:'Wafer Light',category:'Lighting',cost:65,aliases:['wafer','wafer light','recessed light']},
-  {id:uid(),name:'Ceiling Fan',category:'Fixtures',cost:225,aliases:['ceiling fan','fan']}
+  {id:uid(),name:'20A Circuit',category:'Branch Circuits',cost:185},
+  {id:uid(),name:'Duplex Receptacle',category:'Devices',cost:12},
+  {id:uid(),name:'GFCI Receptacle',category:'Devices',cost:24},
+  {id:uid(),name:'Wafer Light',category:'Lighting',cost:65},
+  {id:uid(),name:'Ceiling Fan',category:'Fixtures',cost:225}
 ]);
 let customers=DB.get('neuCustomersV3',[]);
 let proposals=DB.get('neuProposalsV3',[]);
@@ -563,12 +553,6 @@ document.querySelectorAll('.nav button').forEach(button=>button.addEventListener
 function nextProposalNumber(){
   const numbers=proposals.map(p=>Number(String(p.number||'').replace(/\D/g,''))).filter(Boolean);
   return 'NEU-'+String((numbers.length?Math.max(...numbers):1000)+1);
-}
-
-function wordNumber(value){
-  const map={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
-  if(/^\d+$/.test(value))return Number(value);
-  return map[value.toLowerCase()]||1;
 }
 
 function materialOptions(){
@@ -626,7 +610,7 @@ function setProposalEditMode(isEditing){
 function newProposal(jobId=''){
   editingProposalId=null;
   setProposalEditMode(false);
-  ['customerName','customerPhone','customerEmail','serviceAddress','projectName','quickText'].forEach(id=>$(id).value='');
+  ['customerName','customerPhone','customerEmail','serviceAddress','projectName'].forEach(id=>$(id).value='');
   $('proposalNumber').value=nextProposalNumber();
   $('proposalDate').value=new Date().toISOString().slice(0,10);
   $('proposalStatus').value='Draft';
@@ -637,60 +621,6 @@ function newProposal(jobId=''){
   $('proposalItems').innerHTML='';
   addProposalRow();
   if(jobId)fillJob();
-}
-
-function findMaterialByPhrase(phrase){
-  const p=phrase.toLowerCase();
-  return materials.find(material=>{
-    const aliases=[material.name,...(material.aliases||[])].map(x=>x.toLowerCase());
-    return aliases.some(alias=>p.includes(alias));
-  });
-}
-
-function addMaterialToProposal(material,qty=1){
-  addProposalRow({materialId:material.id,description:material.name,qty,cost:material.cost});
-  material.lastUsed=Date.now();
-  DB.set('neuMaterialsV3',materials);
-}
-
-function parseSmartText(){
-  const input=$('quickText');
-  const original=input.value.trim();
-  const text=original.toLowerCase();
-  if(!text)return;
-
-  let added=0;
-  const quantityPattern='(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\\d+)';
-  const knownRules=[
-    {terms:['20 amp circuit','20-amp circuit','20a circuit','dedicated circuit'],fallback:'20A Circuit'},
-    {terms:['gfci receptacle','gfci outlet','gfci'],fallback:'GFCI Receptacle'},
-    {terms:['duplex receptacle','receptacle','receptacles','outlet','outlets'],fallback:'Duplex Receptacle'},
-    {terms:['wafer light','wafer lights','recessed light','recessed lights'],fallback:'Wafer Light'},
-    {terms:['ceiling fan','ceiling fans'],fallback:'Ceiling Fan'}
-  ];
-
-  knownRules.forEach(rule=>{
-    const term=rule.terms.find(t=>text.includes(t));
-    if(!term)return;
-    const material=materials.find(m=>m.name===rule.fallback)||findMaterialByPhrase(term);
-    if(!material)return;
-    const regex=new RegExp(quantityPattern+'\\s+(?:dedicated\\s+)?'+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'));
-    const match=text.match(regex);
-    const qty=match?wordNumber(match[1]):1;
-    addMaterialToProposal(material,qty);
-    added++;
-  });
-
-  if(!added){
-    const matched=materials.filter(material=>{
-      const aliases=[material.name,...(material.aliases||[])].map(x=>x.toLowerCase());
-      return aliases.some(alias=>text.includes(alias));
-    });
-    matched.forEach(material=>{addMaterialToProposal(material,1);added++});
-  }
-
-  if(!added)addProposalRow({description:original,qty:1,cost:0});
-  input.value='';
 }
 
 function collectProposal(){
@@ -986,7 +916,6 @@ function openMaterialModal(id=null){
   $('materialName').value=material?.name||'';
   $('materialCategory').value=material?.category||'';
   $('materialCost').value=material?.cost??'';
-  $('materialAliases').value=(material?.aliases||[]).join(', ');
   $('materialModal').classList.add('open');
 }
 
@@ -998,7 +927,6 @@ function saveMaterial(){
     name,
     category:$('materialCategory').value.trim()||'Uncategorized',
     cost:Number($('materialCost').value)||0,
-    aliases:$('materialAliases').value.split(',').map(x=>x.trim()).filter(Boolean),
     lastUsed:materials.find(m=>m.id===editingMaterialId)?.lastUsed||0
   };
   const index=materials.findIndex(m=>m.id===material.id);
@@ -1013,14 +941,14 @@ function renderMaterials(){
   const query=($('materialSearch')?.value||'').toLowerCase();
   const category=$('materialCategoryFilter')?.value||'';
   const rows=materials.filter(m=>{
-    const matches=`${m.name} ${m.category} ${(m.aliases||[]).join(' ')}`.toLowerCase().includes(query);
+    const matches=`${m.name} ${m.category}`.toLowerCase().includes(query);
     return matches&&(!category||m.category===category);
   }).sort((a,b)=>a.name.localeCompare(b.name));
 
   refreshCategoryFilter();
   $('materialsTable').innerHTML=rows.length?rows.map(m=>`
     <tr>
-      <td data-label="Material"><strong>${escapeHtml(m.name)}</strong><div class="hint">${escapeHtml((m.aliases||[]).join(', '))}</div></td>
+      <td data-label="Material"><strong>${escapeHtml(m.name)}</strong></td>
       <td data-label="Category">${escapeHtml(m.category||'Uncategorized')}</td>
       <td data-label="Unit Cost"><strong>${money(m.cost)}</strong></td>
       <td data-label="Actions">
@@ -1285,7 +1213,6 @@ function escapeHtml(value){
   return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 }
 
-$('quickText').addEventListener('keydown',event=>{if(event.key==='Enter')parseSmartText()});
 ensureJobsFromProposals();
 loadSettings();
 refreshCustomerSelect();
