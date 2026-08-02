@@ -358,6 +358,19 @@ td input,td select{padding:8px 9px}
   }
   .proposal-final-total{text-align:right;color:#e11b8d;font-size:27pt;line-height:1;font-weight:900;padding-top:4px}
 }
+
+/* Assembly builder */
+.builder-modal-box{max-width:860px;max-height:92vh;overflow:auto}
+.builder-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.builder-preview{background:#f8fafc;border:1px solid var(--border);border-radius:12px;padding:14px}
+.builder-preview strong{display:block;font-size:16px;margin-bottom:8px}
+.builder-price{font-size:27px;font-weight:900;color:#1e3a8a;margin-top:8px}
+.qty-control{display:grid;grid-template-columns:42px 1fr 42px;gap:7px;align-items:center}
+.qty-control button{height:40px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-size:20px;font-weight:800}
+.qty-control input{text-align:center;font-weight:800}
+.library-note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:10px;padding:10px 12px;font-size:12px;margin-bottom:14px}
+.material-extra{border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
+@media(max-width:760px){.builder-grid{grid-template-columns:1fr}.builder-modal-box{max-height:96vh}.qty-control{grid-template-columns:44px 1fr 44px}}
 </style>
 </head>
 <body>
@@ -438,7 +451,10 @@ td input,td select{padding:8px 9px}
   <div class="card">
     <div class="section-head">
       <div><span class="kicker">Line items</span><h3>Proposal Materials</h3></div>
-      <button class="btn btn-primary no-print" onclick="addProposalRow()"><span data-icon="plus"></span>Add Item</button>
+      <div class="actions no-print">
+        <button class="btn btn-primary" onclick="openAssemblyBuilder()"><span data-icon="plus"></span>Build Item</button>
+        <button class="btn btn-outline" onclick="addProposalRow()"><span data-icon="plus"></span>Custom Item</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -500,13 +516,13 @@ td input,td select{padding:8px 9px}
 
 <section id="materialsView" class="view">
   <div class="hero">
-    <div><h2>Materials & Costs</h2><p>Maintain customer-facing material and job costs. No separate sell-price field is used.</p></div>
+    <div><h2>Fixture & Device Library</h2><p>Add, rename, price, hide, or edit fixtures, devices, circuits, and equipment used by the Build Item tool.</p></div>
     <div class="hero-stat"><span>Saved Materials</span><strong id="materialCount">0</strong></div>
   </div>
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Price book</span><h3>Saved Materials</h3></div>
-      <button class="btn btn-primary" onclick="openMaterialModal()">＋ Add Material</button>
+      <div><span class="kicker">Editable catalog</span><h3>Fixtures, Devices & Line-Item Pricing</h3></div>
+      <button class="btn btn-primary" onclick="openMaterialModal()">＋ Add Fixture / Device</button>
     </div>
     <div class="search-row" style="margin-bottom:12px">
       <input id="materialSearch" placeholder="Search material or category" oninput="renderMaterials()">
@@ -514,7 +530,7 @@ td input,td select{padding:8px 9px}
     </div>
     <div class="table-wrap">
       <table class="mobile-cards">
-        <thead><tr><th>Material</th><th>Category</th><th>Unit Cost</th><th style="text-align:right">Actions</th></tr></thead>
+        <thead><tr><th>Name</th><th>Category</th><th>Starting Price</th><th>Visible</th><th style="text-align:right">Actions</th></tr></thead>
         <tbody id="materialsTable"></tbody>
       </table>
     </div>
@@ -628,15 +644,49 @@ td input,td select{padding:8px 9px}
 
 <div id="materialModal" class="modal">
   <div class="modal-box">
-    <h3 id="materialModalTitle">Add Material</h3>
+    <h3 id="materialModalTitle">Add Fixture / Device</h3>
     <div class="grid">
-      <label class="span-2">Material Name<input id="materialName"></label>
-      <label>Category<input id="materialCategory"></label>
-      <label>Unit Cost<input id="materialCost" type="number" min="0" step="0.01"></label>
+      <label class="span-2">Name<input id="materialName" placeholder="Example: 6&quot; LED recessed fixture"></label>
+      <label>Category<input id="materialCategory" placeholder="Lighting, Fans, Receptacles..."></label>
+      <label>Default Line-Item Price<input id="materialCost" type="number" min="0" step="0.01"></label>
+      <label>Price for Each Additional Device<input id="materialExtraCost" type="number" min="0" step="0.01"></label>
+      <label>Price for Each Additional Switch / Control<input id="materialControlCost" type="number" min="0" step="0.01"></label>
+      <label class="span-2">Available Sizes / Styles<input id="materialSizes" placeholder='Example: 4&quot;, 5&quot;, 6&quot; (comma separated)'></label>
+      <label>Singular Wording<input id="materialSingular" placeholder="fixture"></label>
+      <label>Plural Wording<input id="materialPlural" placeholder="fixtures"></label>
+      <label class="span-2"><span><input id="materialActive" type="checkbox" checked style="width:auto;margin-right:8px">Show in Assembly Builder</span></label>
     </div>
     <div class="modal-actions">
       <button class="btn btn-light" onclick="closeModal('materialModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMaterial()">Save Material</button>
+      <button class="btn btn-primary" onclick="saveMaterial()">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="assemblyBuilderModal" class="modal">
+  <div class="modal-box builder-modal-box">
+    <div class="section-head">
+      <div><span class="kicker">Fast line-item generator</span><h3>Build Item</h3></div>
+      <button class="icon-btn" onclick="closeModal('assemblyBuilderModal')" aria-label="Close">✕</button>
+    </div>
+    <div class="library-note">Choose a template, quantities, fixture or device, and room. You only see the finished line item and final price.</div>
+    <div class="builder-grid">
+      <label>Template<select id="assemblyTemplate" onchange="renderAssemblyBuilder()"></select></label>
+      <label>Room / Area<input id="assemblyRoom" list="roomOptions" placeholder="Kitchen, Bedroom, Bathroom..." oninput="renderAssemblyBuilder()"></label>
+      <datalist id="roomOptions"><option>Kitchen</option><option>Bathroom</option><option>Bedroom</option><option>Master Bedroom</option><option>Living Area</option><option>Dining Area</option><option>Hall</option><option>Closet</option><option>Office</option><option>Garage</option><option>Utility Room</option><option>Outside</option></datalist>
+      <label>Fixture / Device<select id="assemblyDevice" onchange="renderAssemblyBuilder()"></select></label>
+      <label>Size / Style<select id="assemblySize" onchange="renderAssemblyBuilder()"></select></label>
+      <label>Number of Switches / Controls<div class="qty-control"><button type="button" onclick="stepAssemblyQty('assemblyControls',-1)">−</button><input id="assemblyControls" type="number" min="0" value="1" oninput="renderAssemblyBuilder()"><button type="button" onclick="stepAssemblyQty('assemblyControls',1)">+</button></div></label>
+      <label>Number of Fixtures / Devices<div class="qty-control"><button type="button" onclick="stepAssemblyQty('assemblyDevices',-1)">−</button><input id="assemblyDevices" type="number" min="1" value="1" oninput="renderAssemblyBuilder()"><button type="button" onclick="stepAssemblyQty('assemblyDevices',1)">+</button></div></label>
+      <label>Protection / Option<select id="assemblyOption" onchange="renderAssemblyBuilder()"><option value="">None</option><option value="GFI protection">GFI protection</option><option value="AFC protection">AFC protection</option><option value="weatherproof">Weatherproof</option><option value="3-way switching">3-way switching</option><option value="dimmer control">Dimmer control</option><option value="owner provided">Owner provided</option></select></label>
+      <label>Manual Price Override<input id="assemblyOverride" type="number" min="0" step="0.01" placeholder="Optional" oninput="renderAssemblyBuilder()"></label>
+      <label class="span-2">Description (editable)<textarea id="assemblyDescription" style="min-height:82px" oninput="syncAssemblyPreviewText()"></textarea></label>
+      <div class="builder-preview span-2"><span class="kicker">Final line item</span><strong id="assemblyPreviewText"></strong><div class="builder-price" id="assemblyPreviewPrice">$0.00</div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-light" onclick="closeModal('assemblyBuilderModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addAssemblyToProposal()">Add Item to Proposal</button>
     </div>
   </div>
 </div>
@@ -698,11 +748,42 @@ const cleanJobName=value=>{
 const cleanBuilderName=value=>String(value||'').trim()||'Unassigned Builder';
 
 const defaultMaterials=()=>[
-  {id:uid(),name:'20A Circuit',category:'Branch Circuits',cost:185},
-  {id:uid(),name:'Duplex Receptacle',category:'Devices',cost:12},
-  {id:uid(),name:'GFCI Receptacle',category:'Devices',cost:24},
-  {id:uid(),name:'Wafer Light',category:'Lighting',cost:65},
-  {id:uid(),name:'Ceiling Fan',category:'Fixtures',cost:225}
+  {id:uid(),name:'4" LED recessed fixture',category:'Lighting',cost:225,extraCost:125,controlCost:80,sizes:['4"'],singular:'fixture',plural:'fixtures',active:true},
+  {id:uid(),name:'5" LED recessed fixture',category:'Lighting',cost:235,extraCost:130,controlCost:80,sizes:['5"'],singular:'fixture',plural:'fixtures',active:true},
+  {id:uid(),name:'6" LED recessed fixture',category:'Lighting',cost:240,extraCost:135,controlCost:80,sizes:['6"'],singular:'fixture',plural:'fixtures',active:true},
+  {id:uid(),name:'wafer light',category:'Lighting',cost:225,extraCost:125,controlCost:80,sizes:['3"','4"','6"'],singular:'wafer light',plural:'wafer lights',active:true},
+  {id:uid(),name:'owner provided ceiling fixture',category:'Lighting',cost:200,extraCost:135,controlCost:80,sizes:[],singular:'fixture',plural:'fixtures',active:true},
+  {id:uid(),name:'vanity fixture',category:'Lighting',cost:210,extraCost:140,controlCost:80,sizes:['single','double','triple'],singular:'vanity fixture',plural:'vanity fixtures',active:true},
+  {id:uid(),name:'wall sconce',category:'Lighting',cost:210,extraCost:140,controlCost:80,sizes:[],singular:'sconce',plural:'sconces',active:true},
+  {id:uid(),name:'hanging fixture',category:'Lighting',cost:230,extraCost:150,controlCost:80,sizes:['pendant','chandelier'],singular:'hanging fixture',plural:'hanging fixtures',active:true},
+  {id:uid(),name:'outdoor coach light',category:'Lighting',cost:235,extraCost:145,controlCost:80,sizes:['wall','post'],singular:'coach light',plural:'coach lights',active:true},
+  {id:uid(),name:'under-cabinet light',category:'Lighting',cost:190,extraCost:105,controlCost:80,sizes:['12"','18"','24"','36"'],singular:'under-cabinet light',plural:'under-cabinet lights',active:true},
+  {id:uid(),name:'bath fan',category:'Fans',cost:260,extraCost:180,controlCost:85,sizes:['standard','fan/light combo'],singular:'bath fan',plural:'bath fans',active:true},
+  {id:uid(),name:'ceiling fan',category:'Fans',cost:325,extraCost:225,controlCost:95,sizes:['standard','outdoor','fan/light combo'],singular:'ceiling fan',plural:'ceiling fans',active:true},
+  {id:uid(),name:'standard receptacle',category:'Receptacles',cost:125,extraCost:75,controlCost:0,sizes:['duplex','quad'],singular:'receptacle',plural:'receptacles',active:true},
+  {id:uid(),name:'GFI receptacle',category:'Receptacles',cost:165,extraCost:105,controlCost:0,sizes:['duplex','quad'],singular:'GFI receptacle',plural:'GFI receptacles',active:true},
+  {id:uid(),name:'weatherproof receptacle',category:'Receptacles',cost:185,extraCost:120,controlCost:0,sizes:['in-use cover','flush cover'],singular:'weatherproof receptacle',plural:'weatherproof receptacles',active:true},
+  {id:uid(),name:'floor receptacle',category:'Receptacles',cost:295,extraCost:220,controlCost:0,sizes:['round','rectangular'],singular:'floor receptacle',plural:'floor receptacles',active:true},
+  {id:uid(),name:'switched receptacle',category:'Receptacles',cost:195,extraCost:105,controlCost:80,sizes:[],singular:'switched receptacle',plural:'switched receptacles',active:true},
+  {id:uid(),name:'smoke detector',category:'Safety',cost:175,extraCost:110,controlCost:0,sizes:[],singular:'smoke detector',plural:'smoke detectors',active:true},
+  {id:uid(),name:'smoke detector/CO combo',category:'Safety',cost:210,extraCost:135,controlCost:0,sizes:[],singular:'smoke detector/CO combo',plural:'smoke detector/CO combos',active:true},
+  {id:uid(),name:'TV box with receptacle',category:'Low Voltage',cost:185,extraCost:115,controlCost:0,sizes:['single-gang','double-gang'],singular:'TV box with receptacle',plural:'TV boxes with receptacles',active:true},
+  {id:uid(),name:'data stub',category:'Low Voltage',cost:125,extraCost:75,controlCost:0,sizes:['Cat6','fiber'],singular:'data stub',plural:'data stubs',active:true},
+  {id:uid(),name:'15A circuit',category:'Circuits',cost:325,extraCost:245,controlCost:0,sizes:['AFC','standard'],singular:'15A circuit',plural:'15A circuits',active:true},
+  {id:uid(),name:'20A circuit',category:'Circuits',cost:375,extraCost:285,controlCost:0,sizes:['GFI','AFC','standard'],singular:'20A circuit',plural:'20A circuits',active:true},
+  {id:uid(),name:'30A circuit',category:'Circuits',cost:525,extraCost:390,controlCost:0,sizes:['standard'],singular:'30A circuit',plural:'30A circuits',active:true},
+  {id:uid(),name:'50A circuit',category:'Circuits',cost:725,extraCost:540,controlCost:0,sizes:['range','EV charger','hot tub'],singular:'50A circuit',plural:'50A circuits',active:true},
+  {id:uid(),name:'washer connection',category:'Equipment',cost:350,extraCost:250,controlCost:0,sizes:[],singular:'washer connection',plural:'washer connections',active:true},
+  {id:uid(),name:'dryer connection',category:'Equipment',cost:450,extraCost:330,controlCost:0,sizes:['30A'],singular:'dryer connection',plural:'dryer connections',active:true},
+  {id:uid(),name:'range connection',category:'Equipment',cost:625,extraCost:450,controlCost:0,sizes:['40A','50A'],singular:'range connection',plural:'range connections',active:true},
+  {id:uid(),name:'water heater connection',category:'Equipment',cost:425,extraCost:315,controlCost:0,sizes:['30A'],singular:'water heater connection',plural:'water heater connections',active:true},
+  {id:uid(),name:'dishwasher receptacle',category:'Equipment',cost:275,extraCost:190,controlCost:0,sizes:['15A','20A'],singular:'dishwasher receptacle',plural:'dishwasher receptacles',active:true},
+  {id:uid(),name:'microwave receptacle',category:'Equipment',cost:325,extraCost:235,controlCost:0,sizes:['20A'],singular:'microwave receptacle',plural:'microwave receptacles',active:true},
+  {id:uid(),name:'refrigerator receptacle',category:'Equipment',cost:275,extraCost:190,controlCost:0,sizes:['15A','20A'],singular:'refrigerator receptacle',plural:'refrigerator receptacles',active:true},
+  {id:uid(),name:'air handler / heat strip circuit',category:'HVAC',cost:650,extraCost:480,controlCost:0,sizes:['20A','30A','40A','50A','60A'],singular:'air handler circuit',plural:'air handler circuits',active:true},
+  {id:uid(),name:'A/C condenser circuit',category:'HVAC',cost:625,extraCost:460,controlCost:0,sizes:['20A','30A','40A','50A','60A'],singular:'A/C circuit',plural:'A/C circuits',active:true},
+  {id:uid(),name:'200A service',category:'Service',cost:4800,extraCost:0,controlCost:0,sizes:['overhead','underground','feed-through panel'],singular:'200A service',plural:'200A services',active:true},
+  {id:uid(),name:'200A panel',category:'Service',cost:2600,extraCost:0,controlCost:0,sizes:['30 circuit','40 circuit','42 circuit'],singular:'200A panel',plural:'200A panels',active:true}
 ];
 const safeArray=(key,fallback=[])=>{
   const value=DB.get(key,fallback);
@@ -1392,21 +1473,34 @@ function deleteJob(id){
 function openMaterialModal(id=null){
   editingMaterialId=id;
   const material=materials.find(m=>m.id===id);
-  $('materialModalTitle').textContent=material?'Edit Material':'Add Material';
+  $('materialModalTitle').textContent=material?'Edit Fixture / Device':'Add Fixture / Device';
   $('materialName').value=material?.name||'';
   $('materialCategory').value=material?.category||'';
   $('materialCost').value=material?.cost??'';
+  $('materialExtraCost').value=material?.extraCost??material?.cost??'';
+  $('materialControlCost').value=material?.controlCost??0;
+  $('materialSizes').value=Array.isArray(material?.sizes)?material.sizes.join(', '):(material?.sizes||'');
+  $('materialSingular').value=material?.singular||'';
+  $('materialPlural').value=material?.plural||'';
+  $('materialActive').checked=material?.active!==false;
   $('materialModal').classList.add('open');
 }
 
 function saveMaterial(){
   const name=$('materialName').value.trim();
-  if(!name){alert('Enter a material name.');return}
+  if(!name){alert('Enter a name.');return}
+  const singular=$('materialSingular').value.trim()||name;
   const material={
     id:editingMaterialId||uid(),
     name,
-    category:$('materialCategory').value.trim()||'Uncategorized',
+    category:$('materialCategory').value.trim()||'Custom',
     cost:Number($('materialCost').value)||0,
+    extraCost:Number($('materialExtraCost').value)||0,
+    controlCost:Number($('materialControlCost').value)||0,
+    sizes:$('materialSizes').value.split(',').map(v=>v.trim()).filter(Boolean),
+    singular,
+    plural:$('materialPlural').value.trim()||`${singular}s`,
+    active:$('materialActive').checked,
     lastUsed:materials.find(m=>m.id===editingMaterialId)?.lastUsed||0
   };
   const index=materials.findIndex(m=>m.id===material.id);
@@ -1430,14 +1524,15 @@ function renderMaterials(){
     <tr>
       <td data-label="Material"><strong>${escapeHtml(m.name)}</strong></td>
       <td data-label="Category">${escapeHtml(m.category||'Uncategorized')}</td>
-      <td data-label="Unit Cost"><strong>${money(m.cost)}</strong></td>
+      <td data-label="Starting Price"><strong>${money(m.cost)}</strong></td>
+      <td data-label="Visible">${m.active===false?'Hidden':'Yes'}</td>
       <td data-label="Actions">
         <div class="compact-actions">
           <button class="icon-btn" title="Edit material" aria-label="Edit material" onclick="openMaterialModal('${m.id}')">✎</button>
           <button class="icon-btn danger" title="Delete material" aria-label="Delete material" onclick="deleteMaterial('${m.id}')">⌫</button>
         </div>
       </td>
-    </tr>`).join(''):'<tr><td colspan="4" class="empty">No materials found.</td></tr>';
+    </tr>`).join(''):'<tr><td colspan="5" class="empty">No fixtures or devices found.</td></tr>';
   $('materialCount').textContent=materials.length;
 }
 
@@ -1458,6 +1553,96 @@ function refreshCategoryFilter(){
   if(categories.includes(current))select.value=current;
 }
 
+
+
+const ASSEMBLY_TEMPLATES=[
+  {id:'switch-device',name:'Switches for Fixtures / Fans',categories:['Lighting','Fans'],controls:true,devices:true},
+  {id:'receptacles',name:'Receptacles',categories:['Receptacles'],controls:false,devices:true},
+  {id:'circuits',name:'Circuits',categories:['Circuits'],controls:false,devices:true},
+  {id:'equipment',name:'Equipment Connections',categories:['Equipment','HVAC'],controls:false,devices:true},
+  {id:'safety-low-voltage',name:'Safety / Low Voltage',categories:['Safety','Low Voltage'],controls:false,devices:true},
+  {id:'service',name:'Service / Panels',categories:['Service'],controls:false,devices:true}
+];
+let activeAssemblyPrice=0;
+
+function normalizeMaterial(material){
+  material.extraCost=Number(material.extraCost ?? material.cost ?? 0);
+  material.controlCost=Number(material.controlCost ?? 0);
+  material.sizes=Array.isArray(material.sizes)?material.sizes:String(material.sizes||'').split(',').map(v=>v.trim()).filter(Boolean);
+  material.singular=material.singular||material.name;
+  material.plural=material.plural||`${material.singular}s`;
+  material.active=material.active!==false;
+  return material;
+}
+function ensureAssemblyCatalog(){
+  materials=materials.map(normalizeMaterial);
+  const defaults=defaultMaterials();
+  const names=new Set(materials.map(m=>m.name.toLowerCase()));
+  defaults.forEach(item=>{if(!names.has(item.name.toLowerCase()))materials.push(item)});
+  DB.set('neuMaterialsV3',materials);
+}
+function openAssemblyBuilder(){
+  ensureAssemblyCatalog();
+  $('assemblyTemplate').innerHTML=ASSEMBLY_TEMPLATES.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  $('assemblyTemplate').value='switch-device';
+  $('assemblyRoom').value='';
+  $('assemblyControls').value=1;
+  $('assemblyDevices').value=1;
+  $('assemblyOption').value='';
+  $('assemblyOverride').value='';
+  renderAssemblyBuilder();
+  $('assemblyBuilderModal').classList.add('open');
+}
+function activeAssemblyTemplate(){return ASSEMBLY_TEMPLATES.find(t=>t.id===$('assemblyTemplate').value)||ASSEMBLY_TEMPLATES[0]}
+function assemblyCandidates(){
+  const template=activeAssemblyTemplate();
+  return materials.filter(m=>normalizeMaterial(m).active&&template.categories.includes(m.category)).sort((a,b)=>a.name.localeCompare(b.name));
+}
+function renderAssemblyBuilder(){
+  const previous=$('assemblyDevice')?.value;
+  const candidates=assemblyCandidates();
+  $('assemblyDevice').innerHTML=candidates.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+  if(candidates.some(m=>m.id===previous))$('assemblyDevice').value=previous;
+  const material=candidates.find(m=>m.id===$('assemblyDevice').value)||candidates[0];
+  const sizes=material?.sizes||[];
+  const oldSize=$('assemblySize').value;
+  $('assemblySize').innerHTML='<option value="">Default</option>'+sizes.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  if(sizes.includes(oldSize))$('assemblySize').value=oldSize;
+  const template=activeAssemblyTemplate();
+  $('assemblyControls').closest('label').style.display=template.controls?'flex':'none';
+  const controls=Math.max(0,Number($('assemblyControls').value)||0);
+  const devices=Math.max(1,Number($('assemblyDevices').value)||1);
+  const room=$('assemblyRoom').value.trim();
+  const option=$('assemblyOption').value;
+  const size=$('assemblySize').value;
+  let description='';
+  if(material){
+    const noun=devices===1?(material.singular||material.name):(material.plural||material.name);
+    const sized=[size, noun].filter(Boolean).join(' ');
+    if(template.id==='switch-device')description=`Wire ${controls} ${controls===1?'switch':'switches'} for ${devices} ${sized}`;
+    else if(template.id==='receptacles')description=`Wire ${devices} ${sized}`;
+    else if(template.id==='circuits')description=`Wire ${devices} ${sized}`;
+    else if(template.id==='equipment')description=`Wire for ${devices===1?sized:`${devices} ${sized}`}`;
+    else if(template.id==='safety-low-voltage')description=`Provide ${devices} ${sized}`;
+    else description=`Provide ${devices===1?sized:`${devices} ${sized}`}`;
+    if(option)description+=` with ${option}`;
+    if(room)description+=` in ${room}`;
+    const calculated=(Number(material.cost)||0)+Math.max(0,devices-1)*(Number(material.extraCost)||0)+Math.max(0,controls-1)*(Number(material.controlCost)||0);
+    activeAssemblyPrice=$('assemblyOverride').value!==''?Number($('assemblyOverride').value)||0:calculated;
+  }else{activeAssemblyPrice=0;description='Add fixtures or devices in Materials first.'}
+  $('assemblyDescription').value=description;
+  syncAssemblyPreviewText();
+  $('assemblyPreviewPrice').textContent=money(activeAssemblyPrice);
+}
+function syncAssemblyPreviewText(){$('assemblyPreviewText').textContent=$('assemblyDescription').value.trim()||'Line item preview'}
+function stepAssemblyQty(id,delta){const input=$(id);input.value=Math.max(Number(input.min||0),Number(input.value||0)+delta);renderAssemblyBuilder()}
+function addAssemblyToProposal(){
+  const description=$('assemblyDescription').value.trim();
+  if(!description){alert('Enter a line-item description.');return}
+  const materialId=$('assemblyDevice').value||'';
+  addProposalRow({materialId,description,qty:1,cost:activeAssemblyPrice});
+  closeModal('assemblyBuilderModal');
+}
 
 function loadSettings(){
   $('settingCompany').value=settings.company||'';
@@ -1699,6 +1884,7 @@ function showStartupError(error){
 
 function startApp(){
   hydrateIcons();
+  ensureAssemblyCatalog();
   placeLogo('brandLogo');
   ensureJobsFromProposals();
   loadSettings();
