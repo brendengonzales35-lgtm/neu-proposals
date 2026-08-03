@@ -834,12 +834,46 @@ function currentAppState(){
 }
 
 function cloudHeaders(extra={}){
-  // Supabase publishable keys are API keys, not JWTs.
-  // Sending an sb_publishable_ key as a Bearer token causes an Invalid JWT response.
-  return {
-    apikey:SUPABASE_PUBLISHABLE_KEY,
-    ...extra
-  };
+  return {...extra};
+}
+
+function cloudUrl(path,params={}){
+  const url=new URL(`${SUPABASE_URL}${path}`);
+  // Supabase officially supports the publishable key as an apikey query parameter
+  // for browser REST requests. This avoids browser/content-blocker problems with a
+  // custom apikey request header during the initial connection test.
+  url.searchParams.set('apikey',SUPABASE_PUBLISHABLE_KEY);
+  Object.entries(params).forEach(([key,value])=>{
+    if(value!==undefined&&value!==null)url.searchParams.set(key,String(value));
+  });
+  return url.toString();
+}
+
+async function readCloudError(response){
+  let detail='';
+  try{detail=await response.text()}catch{}
+  try{
+    const parsed=detail?JSON.parse(detail):null;
+    detail=parsed?.message||parsed?.details||parsed?.hint||parsed?.code||detail;
+  }catch{}
+  return String(detail||'').slice(0,320);
+}
+
+function friendlyCloudError(error){
+  const message=String(error?.message||error||'Unknown cloud error');
+  if(/Failed to fetch|NetworkError|Load failed/i.test(message)){
+    return 'The browser could not reach Supabase. Check that the Project URL is from the same Supabase project, turn off any content blocker for this site, and retry.';
+  }
+  if(/401|invalid api key|No API key/i.test(message)){
+    return 'Supabase rejected the publishable key. Copy the current Publishable key from Supabase → Project Settings → API Keys and replace the key in index.html.';
+  }
+  if(/404|PGRST205|app_state|schema cache/i.test(message)){
+    return 'Supabase cannot see the app_state table. Run the app_state setup SQL in this same project, then wait 30 seconds and retry.';
+  }
+  if(/403|permission|row-level security|42501/i.test(message)){
+    return 'Supabase connected, but the anon permissions or Row Level Security policies are blocking access. Run the app_state policy SQL again.';
+  }
+  return message;
 }
 
 function scheduleCloudSave(){
@@ -847,29 +881,38 @@ function scheduleCloudSave(){
   cloudSaveTimer=setTimeout(()=>saveCloudState(),450);
 }
 
+async function cloudRequest(path,{method='GET',params={},body,headers={}}={}){
+  const request={method,cache:'no-store',mode:'cors',headers:cloudHeaders(headers)};
+  if(body!==undefined)request.body=JSON.stringify(body);
+  const url=cloudUrl(path,params);
+  return fetch(url,request);
+}
+
 async function saveCloudState(force=false){
-  if((!cloudReady&&!force)||cloudApplying){return}
+  if((!cloudReady&&!force)||cloudApplying)return;
   if(cloudSaving){cloudSaveQueued=true;return}
   cloudSaving=true;
   try{
     const updatedAt=new Date().toISOString();
-    const response=await fetch(`${SUPABASE_URL}/rest/v1/app_state?on_conflict=id`,{
+    const response=await cloudRequest('/rest/v1/app_state',{
       method:'POST',
-      headers:cloudHeaders({
+      params:{on_conflict:'id'},
+      headers:{
         'Content-Type':'application/json',
-        Prefer:'resolution=merge-duplicates,return=representation'
-      }),
-      body:JSON.stringify({id:CLOUD_ROW_ID,data:currentAppState(),updated_at:updatedAt})
+        'Prefer':'resolution=merge-duplicates,return=representation'
+      },
+      body:{id:CLOUD_ROW_ID,data:currentAppState(),updated_at:updatedAt}
     });
     if(!response.ok){
-      const detail=await response.text();
-      throw new Error(`Cloud save failed (${response.status})${detail?`: ${detail.slice(0,220)}`:''}`);
+      const detail=await readCloudError(response);
+      throw new Error(`Cloud save failed (${response.status})${detail?`: ${detail}`:''}`);
     }
     const rows=await response.json();
     lastCloudUpdatedAt=rows?.[0]?.updated_at||updatedAt;
+    clearCloudNotice();
   }catch(error){
-    console.error(error);
-    showCloudNotice('Could not save to the shared cloud. Your changes are still saved on this device.');
+    console.error('NES cloud save error',error);
+    showCloudNotice(`Cloud save failed: ${friendlyCloudError(error)}`,true);
   }finally{
     cloudSaving=false;
     if(cloudSaveQueued){cloudSaveQueued=false;saveCloudState()}
@@ -901,12 +944,12 @@ function applyCloudState(data){
 }
 
 async function fetchCloudState(apply=true){
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=data,updated_at`,{
-    headers:cloudHeaders()
+  const response=await cloudRequest('/rest/v1/app_state',{
+    params:{id:`eq.${CLOUD_ROW_ID}`,select:'data,updated_at'}
   });
   if(!response.ok){
-    const detail=await response.text();
-    throw new Error(`Cloud load failed (${response.status})${detail?`: ${detail.slice(0,220)}`:''}`);
+    const detail=await readCloudError(response);
+    throw new Error(`Cloud load failed (${response.status})${detail?`: ${detail}`:''}`);
   }
   const rows=await response.json();
   const row=rows?.[0];
@@ -920,6 +963,7 @@ async function fetchCloudState(apply=true){
 
 async function connectSharedCloud(){
   try{
+    showCloudNotice('Connecting to shared cloud…');
     const row=await fetchCloudState(false);
     cloudReady=true;
     if(row){
@@ -928,28 +972,45 @@ async function connectSharedCloud(){
     }else{
       await saveCloudState(true);
     }
+    clearCloudNotice();
     setInterval(async()=>{
       if(document.hidden||cloudSaving)return;
-      try{await fetchCloudState(true)}catch(error){console.error(error)}
+      try{await fetchCloudState(true)}catch(error){console.error('NES cloud refresh error',error)}
     },8000);
   }catch(error){
-    console.error(error);
+    console.error('NES cloud connection error',error);
     cloudReady=false;
-    showCloudNotice(`Shared cloud connection failed: ${error.message}`);
+    showCloudNotice(`Shared cloud connection failed: ${friendlyCloudError(error)}`,true);
   }
 }
 
-function showCloudNotice(message){
+function clearCloudNotice(){
+  const notice=document.getElementById('cloudNotice');
+  if(notice)notice.remove();
+}
+
+function showCloudNotice(message,persistent=false){
   let notice=document.getElementById('cloudNotice');
   if(!notice){
     notice=document.createElement('div');
     notice.id='cloudNotice';
-    notice.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 12px 32px rgba(15,23,42,.18)';
+    notice.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 12px 32px rgba(15,23,42,.18);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
     document.body.appendChild(notice);
   }
-  notice.textContent=message;
+  notice.innerHTML='';
+  const text=document.createElement('span');
+  text.textContent=message;
+  notice.appendChild(text);
+  if(/failed/i.test(message)){
+    const retry=document.createElement('button');
+    retry.type='button';
+    retry.textContent='Retry';
+    retry.style.cssText='border:1px solid #fdba74;background:#fff;color:#9a3412;border-radius:9px;padding:7px 12px;font-weight:800;cursor:pointer';
+    retry.onclick=()=>{retry.disabled=true;retry.textContent='Trying…';connectSharedCloud()};
+    notice.appendChild(retry);
+  }
   clearTimeout(notice._timer);
-  notice._timer=setTimeout(()=>notice.remove(),7000);
+  if(!persistent)notice._timer=setTimeout(()=>notice.remove(),7000);
 }
 
 const ROUTES={
@@ -1786,133 +1847,4 @@ function printProposal(){
   window.print();
 }
 
-function exportData(){
-  const data={version:5,exportedAt:new Date().toISOString(),materials,customers,jobs,proposals,settings};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='neu-estimate-pro-backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importData(event){
-  const file=event.target.files?.[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async()=>{
-    try{
-      const data=JSON.parse(reader.result);
-      if(!confirm('Importing will replace your current app data. Continue?'))return;
-      materials=Array.isArray(data.materials)?data.materials:materials;
-      customers=Array.isArray(data.customers)?data.customers:customers;
-      jobs=(Array.isArray(data.jobs)?data.jobs:jobs).map(job=>({...job,name:cleanJobName(job?.name),builderName:cleanBuilderName(job?.builderName||job?.builder)}));
-      proposals=Array.isArray(data.proposals)?data.proposals:proposals;
-      settings=data.settings||settings;
-      DB.set('neuMaterialsV3',materials);
-      DB.set('neuCustomersV3',customers);
-      DB.set('nesJobsV4',jobs);
-      DB.set('neuProposalsV3',proposals);
-      DB.set('neuSettingsV3',settings);
-      await saveCloudState(true);
-      location.reload();
-    }catch{
-      alert('That file is not a valid NEU backup.');
-    }
-  };
-  reader.readAsText(file);
-}
-
-async function resetAllData(){
-  if(!confirm('This will delete all builders, jobs, proposals, materials, and settings for everyone using this website. Continue?'))return;
-  materials=defaultMaterials();
-  customers=[];
-  jobs=[];
-  proposals=[];
-  settings={...DEFAULT_SETTINGS,logo:REFERENCE_LOGO};
-  cloudApplying=true;
-  try{
-    Store.setItem('neuMaterialsV3',JSON.stringify(materials));
-    Store.setItem('neuCustomersV3',JSON.stringify(customers));
-    Store.setItem('nesJobsV4',JSON.stringify(jobs));
-    Store.setItem('neuProposalsV3',JSON.stringify(proposals));
-    Store.setItem('neuSettingsV3',JSON.stringify(settings));
-  }finally{cloudApplying=false}
-  await saveCloudState(true);
-  location.reload();
-}
-
-function closeModal(id){$(id).classList.remove('open')}
-
-function escapeHtml(value){
-  return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
-}
-
-function iconSvg(name,size=18){
-  const paths={
-    home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/><path d="M9 20v-6h6v6"/>',
-    plus:'<path d="M12 5v14M5 12h14"/>',
-    building:'<path d="M4 21V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v16"/><path d="M9 21v-4h4v4M8 7h1M12 7h1M8 11h1M12 11h1M17 9h2a1 1 0 0 1 1 1v11M3 21h18"/>',
-    files:'<path d="M15 2H6a2 2 0 0 0-2 2v12"/><path d="M8 6h9l3 3v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/><path d="M14 6v4h4"/>',
-    file:'<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M9 13h6M9 17h6"/>',
-    'file-plus':'<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M12 11v6M9 14h6"/>',
-    package:'<path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="m3 8 9 5v9M21 8l-9 5M7.5 5.5l9 5"/>',
-    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/>',
-    printer:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
-    folder:'<path d="M3 5h6l2 2h10v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/>',
-    'folder-plus':'<path d="M3 5h6l2 2h10v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="M12 11v6M9 14h6"/>',
-    chevron:'<path d="m9 18 6-6-6-6"/>',
-    eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
-    edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
-    mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
-    move:'<path d="M5 9h11M13 6l3 3-3 3M19 15H8M11 12l-3 3 3 3"/>',
-    trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 16h10l1-16M10 10v8M14 10v8"/>'
-  };
-  const body=paths[name]||paths.file;
-  return `<svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
-}
-
-function hydrateIcons(root=document){
-  root.querySelectorAll('[data-icon]').forEach(node=>{
-    node.innerHTML=iconSvg(node.dataset.icon);
-    node.removeAttribute('data-icon');
-  });
-}
-
-function showStartupError(error){
-  console.error('NES PROPOSALS startup error:',error);
-  const banner=document.createElement('div');
-  banner.setAttribute('role','alert');
-  banner.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:12px;padding:14px 16px;font-weight:700;box-shadow:0 12px 32px rgba(15,23,42,.18)';
-  banner.textContent='NES PROPOSALS recovered from a browser-data problem. Refresh once. Your buttons should remain available.';
-  document.body.appendChild(banner);
-}
-
-function startApp(){
-  hydrateIcons();
-  ensureAssemblyCatalog();
-  placeLogo('brandLogo');
-  ensureJobsFromProposals();
-  loadSettings();
-  refreshJobSelect();
-  renderMaterials();
-  renderProposals();
-  renderJobs();
-  updateCounts();
-  newProposal();
-  openRouteFromUrl();
-}
-
-try{startApp();connectSharedCloud()}catch(error){
-  showStartupError(error);
-  // Keep navigation usable even if old saved data contains something unexpected.
-  hydrateIcons();
-  placeLogo('brandLogo');
-  document.querySelectorAll('.nav [data-view]').forEach(link=>{
-    link.onclick=event=>{event.preventDefault();showView(link.dataset.view,true)};
-  });
-}
-</script>
-</body>
-</html>
+functio
