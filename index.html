@@ -263,6 +263,38 @@ td input,td select{padding:8px 9px}
   .proposal-card-meta{grid-template-columns:1fr}
 }
 
+/* Room-grouped proposal scope */
+#proposalItems .proposal-room-row td{
+  padding:15px 12px 8px!important;
+  background:#eef4fb!important;
+  color:#174c78;
+  border-top:1px solid #c9d9ea!important;
+  border-bottom:1px solid #c9d9ea!important;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.035em;
+  line-height:2;
+  text-transform:uppercase
+}
+#proposalItems .proposal-item-row td{
+  padding-top:11px;
+  padding-bottom:11px;
+  line-height:2
+}
+#proposalItems .proposal-item-row .item-description{line-height:1.55}
+#proposalItems .proposal-empty-row td{
+  padding:24px 14px!important;
+  text-align:center;
+  color:var(--muted);
+  background:#f8fafc!important;
+  line-height:1.7
+}
+@media(max-width:760px){
+  #proposalItems .proposal-room-row{display:table-row!important;border:0!important;padding:0!important;margin:15px 0 7px!important}
+  #proposalItems .proposal-room-row td{display:table-cell!important;width:auto!important;padding:12px!important}
+  #proposalItems .proposal-item-row{margin-bottom:14px!important}
+}
+
 .material-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 .material-tab{border:1px solid var(--border);background:#fff;color:var(--muted);padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}
 .material-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
@@ -384,7 +416,7 @@ button,input,select,textarea{max-width:100%}
   .proposal-brand{min-height:158px;padding-left:4px}
   .proposal-logo{width:2.55in;height:.67in;display:flex;align-items:center;margin-bottom:10px}
   .proposal-logo img{width:100%;height:100%;object-fit:contain;object-position:left center;border:0;border-radius:0;padding:0;background:transparent}
-  .proposal-company-details{color:#626262;white-space:pre-line;font-size:9.5pt;line-height:1.48}
+  .proposal-company-details{color:#626262;white-space:pre-line;font-size:9.5pt;line-height:2}
   .proposal-title{text-align:right;padding-right:4px}
   .proposal-title h1{margin:-2px 0 14px;color:#2f3f92;font-size:34pt;line-height:.95;font-weight:900;letter-spacing:-1.2px}
   .proposal-submitted{display:flex;justify-content:flex-end;gap:23px;color:#e21b8f;font-weight:900;font-size:10.5pt}
@@ -398,10 +430,10 @@ button,input,select,textarea{max-width:100%}
     border-bottom:1px solid #252525
   }
   .proposal-info-block h3{margin:0 0 7px;color:#333;font-size:10.5pt;font-weight:900}
-  .proposal-info-block p{margin:0;color:#626262;white-space:pre-line;min-height:14px;font-size:9.8pt}
+  .proposal-info-block p{margin:0;color:#626262;white-space:pre-line;min-height:14px;font-size:9.8pt;line-height:2}
   .proposal-project{grid-column:2}
   .proposal-due{grid-column:3}
-  .proposal-table{width:100%;min-width:0;border-collapse:separate;border-spacing:0 3px;margin-top:15px;font-size:9.8pt}
+  .proposal-table{width:100%;min-width:0;border-collapse:separate;border-spacing:0 7px;margin-top:15px;font-size:9.8pt}
   .proposal-table thead{display:table-row-group}
   .proposal-table th{
     background:transparent!important;
@@ -409,15 +441,35 @@ button,input,select,textarea{max-width:100%}
     color:#2f3f92;
     font-size:10.5pt;
     font-weight:900;
-    padding:0 5px 1px;
+    padding:0 5px 2px;
     text-transform:none;
-    letter-spacing:0
+    letter-spacing:0;
+    line-height:2
   }
   .proposal-table th:last-child,.proposal-table td:last-child{text-align:right;width:112px}
   .proposal-table tbody tr{break-inside:avoid;page-break-inside:avoid}
-  .proposal-table td{border:0!important;padding:4px 5px;background:#f0f0f0;color:#171717;vertical-align:top;line-height:1.18}
-  .proposal-table tbody tr:nth-child(even) td{background:#fff}
-  .proposal-table td:last-child{font-weight:700;white-space:nowrap}
+  .proposal-table .proposal-room-print-row td{
+    background:#fff!important;
+    color:#2f3f92;
+    border:0!important;
+    border-bottom:1px solid #2f3f92!important;
+    padding:11px 5px 3px;
+    font-size:11.5pt;
+    font-weight:900;
+    line-height:2;
+    text-align:left!important;
+    text-transform:uppercase
+  }
+  .proposal-table .proposal-item-print-row td{
+    border:0!important;
+    padding:7px 5px;
+    background:#f0f0f0;
+    color:#171717;
+    vertical-align:top;
+    line-height:2
+  }
+  .proposal-table .proposal-item-print-row:nth-of-type(even) td{background:#fff}
+  .proposal-table .proposal-item-print-row td:last-child{font-weight:700;white-space:nowrap}
   .proposal-ending{
     display:grid;
     grid-template-columns:1fr 168px;
@@ -429,7 +481,7 @@ button,input,select,textarea{max-width:100%}
     break-inside:avoid;
     page-break-inside:avoid
   }
-  .proposal-notes{white-space:pre-wrap;font-size:10pt;line-height:1.23}
+  .proposal-notes{white-space:pre-wrap;font-size:10pt;line-height:2}
   .proposal-notes strong{margin-right:6px}
   .proposal-total-lines{display:grid;gap:9px;padding-top:6px;font-size:10pt}
   .proposal-total-line{display:flex;justify-content:space-between;gap:14px}
@@ -453,7 +505,7 @@ button,input,select,textarea{max-width:100%}
     color:#111;
     white-space:pre-line;
     font-size:11.5pt;
-    line-height:1.28;
+    line-height:2;
     font-weight:500
   }
   .proposal-final-total{text-align:right;color:#e11b8d;font-size:27pt;line-height:1;font-weight:900;padding-top:4px}
@@ -566,7 +618,7 @@ button,input,select,textarea{max-width:100%}
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Material / Description</th><th>Qty</th><th>Unit Cost</th><th>Total</th><th class="no-print"></th></tr></thead>
+        <thead><tr><th>Room / Scope Description</th><th>Qty</th><th>Unit Cost</th><th>Total</th><th class="no-print"></th></tr></thead>
         <tbody id="proposalItems"></tbody>
       </table>
     </div>
@@ -715,7 +767,7 @@ button,input,select,textarea{max-width:100%}
   </div>
 
   <table class="proposal-table">
-    <thead><tr><th>Description</th><th>Total price</th></tr></thead>
+    <thead><tr><th>Room / Description</th><th>Total price</th></tr></thead>
     <tbody id="printItems"></tbody>
   </table>
 
@@ -1168,38 +1220,106 @@ function materialOptions(){
   return '<option value="">Custom item</option>'+materials.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
 }
 
+function cleanProposalRoom(value){
+  return String(value||'').trim()||'General';
+}
+
+function inferProposalItemRoom(item={}){
+  if(item.room)return cleanProposalRoom(item.room);
+  const material=materials.find(m=>m.id===item.materialId);
+  if(material?.category)return cleanProposalRoom(material.category);
+  const description=String(item.description||'');
+  const match=description.match(/^([A-Za-z][A-Za-z &/-]{1,35}):\s*(.+)$/);
+  return match?cleanProposalRoom(match[1]):'General';
+}
+
+function cleanLegacyRoomPrefix(description,room){
+  const text=String(description||'');
+  const prefix=`${room}:`;
+  return text.toLowerCase().startsWith(prefix.toLowerCase())?text.slice(prefix.length).trimStart():text;
+}
+
+function refreshProposalRoomHeaders(){
+  const body=$('proposalItems');
+  if(!body)return;
+  body.querySelectorAll('.proposal-room-row,.proposal-empty-row').forEach(row=>row.remove());
+  const itemRows=[...body.querySelectorAll('.proposal-item-row')];
+  if(!itemRows.length){
+    const empty=document.createElement('tr');
+    empty.className='proposal-empty-row';
+    empty.innerHTML='<td colspan="5">Choose a room above, then add a scope item or package.</td>';
+    body.appendChild(empty);
+    return;
+  }
+  let previousRoom='';
+  itemRows.forEach(row=>{
+    const room=cleanProposalRoom(row.querySelector('.item-room')?.value);
+    row.dataset.room=room;
+    if(room!==previousRoom){
+      const header=document.createElement('tr');
+      header.className='proposal-room-row';
+      header.dataset.room=room;
+      header.innerHTML=`<td colspan="5">${escapeHtml(room)}</td>`;
+      body.insertBefore(header,row);
+      previousRoom=room;
+    }
+  });
+}
+
+function insertProposalRowInRoom(row,room){
+  const body=$('proposalItems');
+  body.querySelectorAll('.proposal-empty-row').forEach(item=>item.remove());
+  const sameRoom=[...body.querySelectorAll('.proposal-item-row')].filter(item=>cleanProposalRoom(item.querySelector('.item-room')?.value)===room);
+  if(sameRoom.length){
+    const last=sameRoom.at(-1);
+    body.insertBefore(row,last.nextSibling);
+  }else{
+    body.appendChild(row);
+  }
+}
+
 function addProposalRow(item={}){
+  const room=inferProposalItemRoom(item);
+  const description=cleanLegacyRoomPrefix(item.description||'',room);
   const row=document.createElement('tr');
+  row.className='proposal-item-row';
+  row.dataset.room=room;
   row.innerHTML=`
     <td>
+      <input class="item-room" type="hidden" value="${escapeHtml(room)}">
       <select class="item-select no-print">${materialOptions()}</select>
-      <input class="item-description" placeholder="Material or description">
+      <input class="item-description" placeholder="Scope description">
     </td>
     <td><input class="item-qty" type="number" min="0" step="1" value="${item.qty??1}"></td>
     <td><input class="item-cost" type="number" min="0" step="0.01" value="${item.cost??0}"></td>
     <td class="item-total">$0.00</td>
     <td class="no-print"><button class="icon-btn danger" title="Delete line item" aria-label="Delete line item">✕</button></td>`;
   row.querySelector('.item-select').value=item.materialId||'';
-  row.querySelector('.item-description').value=item.description||'';
+  row.querySelector('.item-description').value=description;
   row.querySelector('.item-select').addEventListener('change',()=>{
     const material=materials.find(m=>m.id===row.querySelector('.item-select').value);
     if(material){
       row.querySelector('.item-description').value=material.name;
       row.querySelector('.item-cost').value=material.cost;
+      if(cleanProposalRoom(row.querySelector('.item-room').value)==='General'&&material.category){
+        row.querySelector('.item-room').value=cleanProposalRoom(material.category);
+      }
       material.lastUsed=Date.now();
       DB.set('neuMaterialsV3',materials);
+      refreshProposalRoomHeaders();
       calculateProposal();
     }
   });
   row.querySelectorAll('input').forEach(input=>input.addEventListener('input',calculateProposal));
-  row.querySelector('.icon-btn').addEventListener('click',()=>{row.remove();calculateProposal()});
-  $('proposalItems').appendChild(row);
+  row.querySelector('.icon-btn').addEventListener('click',()=>{row.remove();refreshProposalRoomHeaders();calculateProposal()});
+  insertProposalRowInRoom(row,room);
+  refreshProposalRoomHeaders();
   calculateProposal();
 }
 
 function calculateProposal(){
   let subtotal=0;
-  document.querySelectorAll('#proposalItems tr').forEach(row=>{
+  document.querySelectorAll('#proposalItems .proposal-item-row').forEach(row=>{
     const qty=Number(row.querySelector('.item-qty').value)||0;
     const cost=Number(row.querySelector('.item-cost').value)||0;
     const line=qty*cost;
@@ -1233,12 +1353,13 @@ function newProposal(jobId=''){
   refreshJobSelect();
   $('jobSelect').value=jobId||'';
   $('proposalItems').innerHTML='';
-  addProposalRow();
+  refreshProposalRoomHeaders();
   if(jobId)fillJob();
 }
 
 function collectProposal(){
-  const items=[...document.querySelectorAll('#proposalItems tr')].map(row=>({
+  const items=[...document.querySelectorAll('#proposalItems .proposal-item-row')].map(row=>({
+    room:cleanProposalRoom(row.querySelector('.item-room')?.value),
     materialId:row.querySelector('.item-select').value,
     description:row.querySelector('.item-description').value.trim(),
     qty:Number(row.querySelector('.item-qty').value)||0,
@@ -1364,7 +1485,7 @@ function openProposal(id){
   $('proposalAdjustment').value=Number(p.adjustment)||0;
   $('proposalItems').innerHTML='';
   (p.items||[]).forEach(addProposalRow);
-  if(!(p.items||[]).length)addProposalRow();
+  if(!(p.items||[]).length)refreshProposalRoomHeaders();
   showView('proposalView');
   setProposalEditMode(true);
 }
@@ -1705,7 +1826,11 @@ function renderMaterials(){
   $('materialsTable').innerHTML=rows.length?rows.map(m=>`<tr><td data-label="Scope Item"><strong>${escapeHtml(m.name)}</strong>${m.active===false?'<small style="display:block;color:var(--muted)">Hidden</small>':''}</td><td data-label="Room / Category">${escapeHtml(m.category||'Custom')}</td><td data-label="Default Price"><strong>${money(m.cost)}</strong></td><td data-label="Favorite">${m.favorite?'<span class="scope-favorite">★</span>':'—'}</td><td data-label="Actions"><div class="compact-actions"><button class="icon-btn" title="Edit" onclick="openMaterialModal('${m.id}')">✎</button><button class="icon-btn danger" title="Delete" onclick="deleteMaterial('${m.id}')">⌫</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No scope items found.</td></tr>';
   $('materialCount').textContent=materials.length;renderPackages();
 }
-function openScopePickerFromRoom(){openScopePicker($('proposalRoom')?.value.trim()||'')}
+function openScopePickerFromRoom(){
+  const room=$('proposalRoom')?.value.trim()||'';
+  if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}
+  openScopePicker(room);
+}
 function openScopePicker(room=''){
   if(room)$('proposalRoom').value=room;selectedScopeItemId=null;selectedScopeCategory=room||'Favorites';$('scopePickerSearch').value='';$('scopeSelectedEditor').style.display='none';renderScopePicker();$('scopePickerModal').classList.add('open');
 }
@@ -1724,14 +1849,21 @@ function selectScopeItem(id){
 }
 function updateSelectedScope(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const q=Math.max(1,Number($('scopeSelectedQty').value)||1);$('scopeSelectedDescription').value=pluralizeScopeDescription(m.name,q,m);$('scopeSelectedPrice').value=((Number(m.cost)||0)*q).toFixed(2)}
 function stepScopeQty(delta){$('scopeSelectedQty').value=Math.max(1,(Number($('scopeSelectedQty').value)||1)+delta);updateSelectedScope()}
-function addSelectedScopeToProposal(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const description=$('scopeSelectedDescription').value.trim();const price=Number($('scopeSelectedPrice').value)||0;if(!description){alert('Enter a description.');return}m.lastUsed=Date.now();DB.set('neuMaterialsV3',materials);addProposalRow({materialId:m.id,description,qty:1,cost:price});closeModal('scopePickerModal');scheduleCloudSave()}
-function addCustomItemForRoom(){const room=$('proposalRoom')?.value.trim()||'';addProposalRow({description:room?`${room}: `:'',qty:1,cost:0});const rows=[...document.querySelectorAll('#proposalItems tr')];const input=rows.at(-1)?.querySelector('.item-description');if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}}
+function addSelectedScopeToProposal(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const description=$('scopeSelectedDescription').value.trim();const price=Number($('scopeSelectedPrice').value)||0;if(!description){alert('Enter a description.');return}m.lastUsed=Date.now();DB.set('neuMaterialsV3',materials);addProposalRow({room:cleanProposalRoom($('proposalRoom')?.value),materialId:m.id,description,qty:1,cost:price});closeModal('scopePickerModal');scheduleCloudSave()}
+function addCustomItemForRoom(){
+  const room=$('proposalRoom')?.value.trim()||'';
+  if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}
+  addProposalRow({room,description:'',qty:1,cost:0});
+  const rows=[...document.querySelectorAll('#proposalItems .proposal-item-row')].filter(row=>cleanProposalRoom(row.querySelector('.item-room')?.value)===cleanProposalRoom(room));
+  const input=rows.at(-1)?.querySelector('.item-description');
+  if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}
+}
 function openPackageModal(id=null){editingPackageId=id;const pkg=packages.find(p=>p.id===id);$('packageModalTitle').textContent=pkg?'Edit Package':'New Package';$('packageName').value=pkg?.name||'';$('packageCategory').value=pkg?.category||$('proposalRoom')?.value||'';const selected=new Set(pkg?.itemIds||[]);$('packageItemChecklist').innerHTML=materials.filter(m=>m.active!==false).sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)).map(m=>`<label class="package-check"><input type="checkbox" value="${m.id}" ${selected.has(m.id)?'checked':''}><span><strong>${escapeHtml(m.name)}</strong><small style="display:block;color:var(--muted)">${escapeHtml(m.category)} · ${money(m.cost)}</small></span></label>`).join('');$('packageModal').classList.add('open')}
 function savePackage(){const name=$('packageName').value.trim();if(!name){alert('Enter a package name.');return}const itemIds=[...document.querySelectorAll('#packageItemChecklist input:checked')].map(i=>i.value);if(!itemIds.length){alert('Choose at least one scope item.');return}const old=packages.find(p=>p.id===editingPackageId);const pkg={id:editingPackageId||uid(),name,category:$('packageCategory').value.trim()||'Custom',itemIds,lastUsed:old?.lastUsed||0};const i=packages.findIndex(p=>p.id===pkg.id);if(i>=0)packages[i]=pkg;else packages.unshift(pkg);DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packageModal');renderPackages()}
 function deletePackage(id){if(!confirm('Delete this package?'))return;packages=packages.filter(p=>p.id!==id);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderPackages()}
 function renderPackages(){const el=$('packagesList');if(!el)return;el.innerHTML=packages.length?packages.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);const total=items.reduce((sum,m)=>sum+(Number(m.cost)||0),0);return `<div class="package-card"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category||'Custom')} · ${items.length} items · ${money(total)}</small></div><div class="compact-actions"><button class="icon-btn" onclick="openPackageModal('${p.id}')">✎</button><button class="icon-btn danger" onclick="deletePackage('${p.id}')">⌫</button></div></div><ul>${items.map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></div>`}).join(''):'<div class="empty">No packages yet. Create a package for the room combinations you use repeatedly.</div>'}
-function openPackagePickerFromRoom(){const room=$('proposalRoom')?.value.trim()||'';$('packagePickerRoomText').textContent=room?`Showing packages for ${room}.`:'Choose a room first, or select any package below.';let rows=packages.filter(p=>!room||p.category===room);if(!rows.length)rows=packages;$('packagePickerList').innerHTML=rows.length?rows.map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);return `<button class="package-card" style="text-align:left;width:100%" onclick="addPackageToProposal('${p.id}')"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category)} · ${items.length} items</small></div><strong>${money(items.reduce((s,m)=>s+(Number(m.cost)||0),0))}</strong></div><ul>${items.slice(0,5).map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></button>`}).join(''):'<div class="empty">No packages have been created yet.</div>';$('packagePickerModal').classList.add('open')}
-function addPackageToProposal(id){const pkg=packages.find(p=>p.id===id);if(!pkg)return;(pkg.itemIds||[]).map(itemId=>materials.find(m=>m.id===itemId)).filter(Boolean).forEach(m=>addProposalRow({materialId:m.id,description:m.name,qty:1,cost:Number(m.cost)||0}));pkg.lastUsed=Date.now();DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packagePickerModal')}
+function openPackagePickerFromRoom(){const room=$('proposalRoom')?.value.trim()||'';if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}$('packagePickerRoomText').textContent=`Showing packages for ${room}.`;let rows=packages.filter(p=>!room||p.category===room);if(!rows.length)rows=packages;$('packagePickerList').innerHTML=rows.length?rows.map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);return `<button class="package-card" style="text-align:left;width:100%" onclick="addPackageToProposal('${p.id}')"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category)} · ${items.length} items</small></div><strong>${money(items.reduce((s,m)=>s+(Number(m.cost)||0),0))}</strong></div><ul>${items.slice(0,5).map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></button>`}).join(''):'<div class="empty">No packages have been created yet.</div>';$('packagePickerModal').classList.add('open')}
+function addPackageToProposal(id){const pkg=packages.find(p=>p.id===id);if(!pkg)return;const room=cleanProposalRoom($('proposalRoom')?.value||pkg.category);(pkg.itemIds||[]).map(itemId=>materials.find(m=>m.id===itemId)).filter(Boolean).forEach(m=>addProposalRow({room,materialId:m.id,description:m.name,qty:1,cost:Number(m.cost)||0}));pkg.lastUsed=Date.now();DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packagePickerModal')}
 function openAssemblyBuilderFromRoom(){openScopePickerFromRoom()}
 function loadSettings(){
   $('settingCompany').value=settings.company||'';
@@ -1844,14 +1976,26 @@ function buildPrintPreview(){
   ].filter(Boolean).join('\n');
   $('printDueDate').textContent=formatProposalDate(proposal.dueDate);
 
-  $('printItems').innerHTML=proposal.items.length
-    ?proposal.items.map(item=>{
-      const description=item.qty>1?`${item.qty} ${item.description}`:item.description;
-      const lineTotal=item.qty*item.cost;
-      const displayedPrice=lineTotal?money(lineTotal):'';
-      return `<tr><td>${escapeHtml(description)}</td><td>${displayedPrice}</td></tr>`;
-    }).join('')
-    :'<tr><td></td><td></td></tr>';
+  if(proposal.items.length){
+    const roomOrder=[];
+    const roomGroups=new Map();
+    proposal.items.forEach(item=>{
+      const room=cleanProposalRoom(item.room);
+      if(!roomGroups.has(room)){roomGroups.set(room,[]);roomOrder.push(room)}
+      roomGroups.get(room).push(item);
+    });
+    $('printItems').innerHTML=roomOrder.map(room=>{
+      const roomRows=roomGroups.get(room).map(item=>{
+        const description=item.qty>1?`${item.qty} ${item.description}`:item.description;
+        const lineTotal=item.qty*item.cost;
+        const displayedPrice=lineTotal?money(lineTotal):'';
+        return `<tr class="proposal-item-print-row"><td>${escapeHtml(description)}</td><td>${displayedPrice}</td></tr>`;
+      }).join('');
+      return `<tr class="proposal-room-print-row"><td colspan="2">${escapeHtml(room)}</td></tr>${roomRows}`;
+    }).join('');
+  }else{
+    $('printItems').innerHTML='<tr class="proposal-item-print-row"><td></td><td></td></tr>';
+  }
 
   $('printNotes').textContent=proposal.notes||'';
   $('printSubtotal').textContent=money(proposal.subtotal||0);
