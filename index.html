@@ -1,4 +1,4 @@
-<!doctype html>
+l<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -262,6 +262,24 @@ td input,td select{padding:8px 9px}
   .builder-folder-head{align-items:flex-start}
   .proposal-card-meta{grid-template-columns:1fr}
 }
+
+.material-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.material-tab{border:1px solid var(--border);background:#fff;color:var(--muted);padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}
+.material-tab.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.material-panel{display:none}.material-panel.active{display:block}
+.pricing-explainer{background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+.pricing-explainer strong{display:block;margin-bottom:5px}
+.price-test{display:grid;grid-template-columns:minmax(220px,1.8fr) repeat(2,minmax(120px,.7fr)) minmax(150px,.8fr);gap:12px;align-items:end;margin-bottom:18px}
+.price-test-total{border:1px solid #bfdbfe;background:#eff6ff;border-radius:12px;padding:11px 14px;min-height:45px;display:flex;flex-direction:column;justify-content:center}
+.price-test-total span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#1d4ed8;font-weight:800}.price-test-total strong{font-size:20px;color:#0f172a;margin-top:2px}
+.pricing-rule-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.pricing-rule-card{border:1px solid var(--border);border-radius:14px;background:#fff;padding:15px;box-shadow:0 5px 16px rgba(15,23,42,.05)}
+.pricing-rule-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.pricing-rule-head h4{margin:0;font-size:16px}.pricing-rule-head small{display:block;color:var(--muted);margin-top:3px}
+.rule-values{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rule-value{background:#f8fafc;border-radius:10px;padding:10px}.rule-value span{display:block;font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.04em}.rule-value strong{display:block;margin-top:4px;font-size:15px}
+.rule-formula{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.4}
+.field-help{display:block;color:var(--muted);font-size:11px;font-weight:500;line-height:1.35;margin-top:5px}
+@media(max-width:800px){.price-test{grid-template-columns:1fr 1fr}.price-test label:first-child,.price-test-total{grid-column:1/-1}.rule-values{grid-template-columns:1fr}.pricing-rule-grid{grid-template-columns:1fr}}
+
 @page{size:letter;margin:.5in .72in .55in}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
@@ -528,18 +546,37 @@ td input,td select{padding:8px 9px}
   </div>
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Editable catalog</span><h3>Fixtures, Devices & Line-Item Pricing</h3></div>
+      <div><span class="kicker">Editable catalog</span><h3>Fixtures, Devices & Automatic Pricing</h3></div>
       <button class="btn btn-primary" onclick="openMaterialModal()">＋ Add Fixture / Device</button>
     </div>
-    <div class="search-row" style="margin-bottom:12px">
-      <input id="materialSearch" placeholder="Search material or category" oninput="renderMaterials()">
-      <select id="materialCategoryFilter" onchange="renderMaterials()" style="max-width:220px"><option value="">All Categories</option></select>
+    <div class="material-tabs">
+      <button id="materialCatalogTab" class="material-tab active" onclick="showMaterialsPanel('catalog')">Fixture & Device Library</button>
+      <button id="materialPricingTab" class="material-tab" onclick="showMaterialsPanel('pricing')">Automatic Pricing Rules</button>
     </div>
-    <div class="table-wrap">
-      <table class="mobile-cards">
-        <thead><tr><th>Name</th><th>Category</th><th>Starting Price</th><th>Visible</th><th style="text-align:right">Actions</th></tr></thead>
-        <tbody id="materialsTable"></tbody>
-      </table>
+    <div id="materialCatalogPanel" class="material-panel active">
+      <div class="search-row" style="margin-bottom:12px">
+        <input id="materialSearch" placeholder="Search material or category" oninput="renderMaterials()">
+        <select id="materialCategoryFilter" onchange="renderMaterials()" style="max-width:220px"><option value="">All Categories</option></select>
+      </div>
+      <div class="table-wrap">
+        <table class="mobile-cards">
+          <thead><tr><th>Name</th><th>Category</th><th>Starting Price</th><th>Visible</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody id="materialsTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="materialPricingPanel" class="material-panel">
+      <div class="pricing-explainer">
+        <strong>How automatic pricing works</strong>
+        The starting price covers the first fixture or device and the first switch when applicable. The app then adds the saved amount for each additional device and each additional switch. Only the final price appears on the proposal.
+      </div>
+      <div class="price-test">
+        <label>Test a pricing rule<select id="pricingTestMaterial" onchange="updatePricingTest()"></select></label>
+        <label>Devices / Fixtures<input id="pricingTestDevices" type="number" min="1" value="1" oninput="updatePricingTest()"></label>
+        <label>Switches / Controls<input id="pricingTestControls" type="number" min="0" value="1" oninput="updatePricingTest()"></label>
+        <div class="price-test-total"><span>Automatic price</span><strong id="pricingTestTotal">$0.00</strong></div>
+      </div>
+      <div id="pricingRuleCards" class="pricing-rule-grid"></div>
     </div>
   </div>
 </section>
@@ -655,9 +692,9 @@ td input,td select{padding:8px 9px}
     <div class="grid">
       <label class="span-2">Name<input id="materialName" placeholder="Example: 6&quot; LED recessed fixture"></label>
       <label>Category<input id="materialCategory" placeholder="Lighting, Fans, Receptacles..."></label>
-      <label>Default Line-Item Price<input id="materialCost" type="number" min="0" step="0.01"></label>
-      <label>Price for Each Additional Device<input id="materialExtraCost" type="number" min="0" step="0.01"></label>
-      <label>Price for Each Additional Switch / Control<input id="materialControlCost" type="number" min="0" step="0.01"></label>
+      <label>Starting Price<input id="materialCost" type="number" min="0" step="0.01"><span class="field-help">Price for the first device or fixture. This is the minimum automatic price.</span></label>
+      <label>Each Additional Device / Fixture<input id="materialExtraCost" type="number" min="0" step="0.01"><span class="field-help">Added for device number 2, 3, 4, and so on.</span></label>
+      <label>Each Additional Switch / Control<input id="materialControlCost" type="number" min="0" step="0.01"><span class="field-help">Added for switch number 2, 3, 4, and so on.</span></label>
       <label class="span-2">Available Sizes / Styles<input id="materialSizes" placeholder='Example: 4&quot;, 5&quot;, 6&quot; (comma separated)'></label>
       <label>Singular Wording<input id="materialSingular" placeholder="fixture"></label>
       <label>Plural Wording<input id="materialPlural" placeholder="fixtures"></label>
@@ -1551,6 +1588,54 @@ function saveMaterial(){
   updateCounts();
 }
 
+function showMaterialsPanel(panel){
+  const pricing=panel==='pricing';
+  $('materialCatalogPanel')?.classList.toggle('active',!pricing);
+  $('materialPricingPanel')?.classList.toggle('active',pricing);
+  $('materialCatalogTab')?.classList.toggle('active',!pricing);
+  $('materialPricingTab')?.classList.toggle('active',pricing);
+  if(pricing){renderPricingRules();updatePricingTest()}
+}
+
+function automaticMaterialPrice(material,devices=1,controls=1){
+  const m=normalizeMaterial({...material});
+  const deviceCount=Math.max(1,Number(devices)||1);
+  const controlCount=Math.max(0,Number(controls)||0);
+  return (Number(m.cost)||0)+Math.max(0,deviceCount-1)*(Number(m.extraCost)||0)+Math.max(0,controlCount-1)*(Number(m.controlCost)||0);
+}
+
+function renderPricingRules(){
+  const select=$('pricingTestMaterial');
+  if(select){
+    const current=select.value;
+    select.innerHTML=materials.filter(m=>m.active!==false).sort((a,b)=>a.name.localeCompare(b.name)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+    if(materials.some(m=>m.id===current))select.value=current;
+  }
+  const cards=$('pricingRuleCards');
+  if(!cards)return;
+  const sorted=[...materials].sort((a,b)=>(a.category||'').localeCompare(b.category||'')||a.name.localeCompare(b.name));
+  cards.innerHTML=sorted.length?sorted.map(m=>{
+    const normalized=normalizeMaterial({...m});
+    return `<div class="pricing-rule-card">
+      <div class="pricing-rule-head"><div><h4>${escapeHtml(normalized.name)}</h4><small>${escapeHtml(normalized.category||'Custom')} · ${normalized.active===false?'Hidden':'Available in builder'}</small></div><button class="icon-btn" title="Edit pricing rule" onclick="openMaterialModal('${normalized.id}')">✎</button></div>
+      <div class="rule-values">
+        <div class="rule-value"><span>Starting</span><strong>${money(normalized.cost)}</strong></div>
+        <div class="rule-value"><span>Extra device</span><strong>+${money(normalized.extraCost)}</strong></div>
+        <div class="rule-value"><span>Extra switch</span><strong>+${money(normalized.controlCost)}</strong></div>
+      </div>
+      <div class="rule-formula">Example: 3 devices and 2 switches = ${money(automaticMaterialPrice(normalized,3,2))}</div>
+    </div>`;
+  }).join(''):'<div class="empty">No pricing rules yet.</div>';
+}
+
+function updatePricingTest(){
+  const id=$('pricingTestMaterial')?.value;
+  const material=materials.find(m=>m.id===id);
+  const devices=Math.max(1,Number($('pricingTestDevices')?.value)||1);
+  const controls=Math.max(0,Number($('pricingTestControls')?.value)||0);
+  if($('pricingTestTotal'))$('pricingTestTotal').textContent=money(material?automaticMaterialPrice(material,devices,controls):0);
+}
+
 function renderMaterials(){
   const query=($('materialSearch')?.value||'').toLowerCase();
   const category=$('materialCategoryFilter')?.value||'';
@@ -1574,6 +1659,7 @@ function renderMaterials(){
       </td>
     </tr>`).join(''):'<tr><td colspan="5" class="empty">No fixtures or devices found.</td></tr>';
   $('materialCount').textContent=materials.length;
+  if($('materialPricingPanel')?.classList.contains('active')){renderPricingRules();updatePricingTest()}
 }
 
 function deleteMaterial(id){
@@ -1686,7 +1772,7 @@ function renderAssemblyBuilder(){
     else description=`Provide ${devices===1?sized:`${devices} ${sized}`}`;
     if(option)description+=` with ${option}`;
     if(room)description+=` in ${room}`;
-    const calculated=(Number(material.cost)||0)+Math.max(0,devices-1)*(Number(material.extraCost)||0)+Math.max(0,controls-1)*(Number(material.controlCost)||0);
+    const calculated=automaticMaterialPrice(material,devices,controls);
     activeAssemblyPrice=$('assemblyOverride').value!==''?Number($('assemblyOverride').value)||0:calculated;
   }else{activeAssemblyPrice=0;description='Add fixtures or devices in Materials first.'}
   $('assemblyDescription').value=description;
