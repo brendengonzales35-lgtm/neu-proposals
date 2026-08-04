@@ -281,7 +281,7 @@ td input,td select{padding:8px 9px}
   padding-bottom:11px;
   line-height:2
 }
-#proposalItems .proposal-item-row .item-description{line-height:1.55}
+#proposalItems .proposal-item-row .item-description{line-height:1.55;font-weight:650;background:#fff}
 #proposalItems .proposal-empty-row td{
   padding:24px 14px!important;
   text-align:center;
@@ -566,7 +566,7 @@ button,input,select,textarea{max-width:100%}
       <div class="section-head"><div><span class="kicker">Quick actions</span><h3>Start Working</h3></div></div>
       <div class="quick-grid">
         <div class="quick-card" onclick="showView('proposalView');newProposal()"><div class="icon-box" data-icon="file-plus"></div><h3>New Proposal</h3><p>Start a new estimate.</p></div>
-        <div class="quick-card" onclick="showView('materialsView')"><div class="icon-box" data-icon="package"></div><h3>Price Book</h3><p>Edit scope items and packages.</p></div>
+        <div class="quick-card" onclick="showView('materialsView')"><div class="icon-box" data-icon="package"></div><h3>Price Book</h3><p>Edit work items and packages.</p></div>
         <div class="quick-card" onclick="openJobModal()"><div class="icon-box" data-icon="folder-plus"></div><h3>Add Builder / Job</h3><p>Create a builder folder and job.</p></div>
       </div>
     </div>
@@ -579,7 +579,7 @@ button,input,select,textarea{max-width:100%}
 
 <section id="proposalView" class="view">
   <div class="hero">
-    <div><h2 id="proposalHeading">Create Proposal</h2><p>Attach the proposal to a job, choose a room, and add saved scope items or packages in a few taps.</p></div>
+    <div><h2 id="proposalHeading">Create Proposal</h2><p>Attach the proposal to a job, choose a room, and add saved work items or packages in a few taps.</p></div>
     <div class="hero-stat"><span>Proposal Total</span><strong id="heroTotal">$0.00</strong></div>
   </div>
 
@@ -606,19 +606,19 @@ button,input,select,textarea{max-width:100%}
 
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Room-by-room scope</span><h3>Proposal Scope</h3><p>Choose a room, then tap a saved scope item or package from your Price Book.</p></div>
+      <div><span class="kicker">Room-by-room estimate</span><h3>Work Included</h3><p>Choose a room, then tap a saved work item or package from your Price Book.</p></div>
     </div>
     <div class="scope-toolbar no-print">
       <label>Room / Section
         <input id="proposalRoom" list="roomOptions" placeholder="Kitchen, Bathroom, Bedroom...">
       </label>
-      <button class="btn btn-primary" onclick="openScopePickerFromRoom()"><span data-icon="plus"></span>Add Scope Item</button>
+      <button class="btn btn-primary" onclick="openScopePickerFromRoom()"><span data-icon="plus"></span>Quick Pick</button>
       <button class="btn btn-outline" onclick="openPackagePickerFromRoom()"><span data-icon="package"></span>Add Package</button>
       <button class="btn btn-light" onclick="addCustomItemForRoom()"><span data-icon="plus"></span>Custom Line</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Room / Scope Description</th><th>Qty</th><th>Unit Cost</th><th>Total</th><th class="no-print"></th></tr></thead>
+        <thead><tr><th>Room / Work Description</th><th>Qty</th><th>Unit Cost</th><th>Total</th><th class="no-print"></th></tr></thead>
         <tbody id="proposalItems"></tbody>
       </table>
     </div>
@@ -626,7 +626,7 @@ button,input,select,textarea{max-width:100%}
 
   <div class="summary">
     <div class="card">
-      <span class="kicker">Customer-facing scope</span><h3>Notes & Terms</h3>
+      <span class="kicker">Proposal notes</span><h3>Notes & Terms</h3>
       <textarea id="proposalNotes"></textarea>
     </div>
     <div class="card">
@@ -676,16 +676,16 @@ button,input,select,textarea{max-width:100%}
 
 <section id="materialsView" class="view">
   <div class="hero">
-    <div><h2>Price Book</h2><p>Manage the electrical scope items and room packages you sell.</p></div>
-    <div class="hero-stat"><span>Scope Items</span><strong id="materialCount">0</strong></div>
+    <div><h2>Price Book</h2><p>Manage the electrical work items and room packages you sell.</p></div>
+    <div class="hero-stat"><span>Work Items</span><strong id="materialCount">0</strong></div>
   </div>
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Simple default pricing</span><h3>Scope Items & Packages</h3></div>
-      <div class="actions"><button class="btn btn-primary" onclick="openMaterialModal()">＋ New Scope Item</button><button class="btn btn-outline" onclick="openPackageModal()">＋ New Package</button></div>
+      <div><span class="kicker">Simple default pricing</span><h3>Work Items & Packages</h3></div>
+      <div class="actions"><button class="btn btn-primary" onclick="openMaterialModal()">＋ New Work Item</button><button class="btn btn-outline" onclick="openPackageModal()">＋ New Package</button></div>
     </div>
     <div class="pricebook-tabs">
-      <button id="scopeItemsTab" class="pricebook-tab active" onclick="showPriceBookPanel('items')">Scope Items</button>
+      <button id="scopeItemsTab" class="pricebook-tab active" onclick="showPriceBookPanel('items')">Work Items</button>
       <button id="packagesTab" class="pricebook-tab" onclick="showPriceBookPanel('packages')">Packages</button>
     </div>
     <div id="scopeItemsPanel" class="pricebook-panel active">
@@ -695,7 +695,7 @@ button,input,select,textarea{max-width:100%}
       </div>
       <div class="table-wrap">
         <table class="mobile-cards">
-          <thead><tr><th>Scope Item</th><th>Room / Category</th><th>Default Price</th><th>Favorite</th><th style="text-align:right">Actions</th></tr></thead>
+          <thead><tr><th>Work Item</th><th>Room / Category</th><th>Default Price</th><th>Favorite</th><th style="text-align:right">Actions</th></tr></thead>
           <tbody id="materialsTable"></tbody>
         </table>
       </div>
@@ -811,9 +811,9 @@ button,input,select,textarea{max-width:100%}
 
 <div id="materialModal" class="modal">
   <div class="modal-box">
-    <h3 id="materialModalTitle">New Scope Item</h3>
+    <h3 id="materialModalTitle">New Work Item</h3>
     <div class="scope-edit-grid">
-      <label class="span-2">Customer-Facing Description<textarea id="materialName" style="min-height:88px" placeholder="Example: Wire 1 20A circuit for bathroom receptacles"></textarea></label>
+      <label class="span-2">Proposal Description<textarea id="materialName" style="min-height:88px" placeholder="Example: Wire 1 20A circuit for bathroom receptacles"></textarea></label>
       <label>Room / Category<input id="materialCategory" list="roomOptions" placeholder="Bathroom"></label>
       <label>Default Price<input id="materialCost" type="number" min="0" step="0.01"></label>
       <label>Singular Quantity Word<input id="materialSingular" placeholder="circuit"></label>
@@ -821,14 +821,14 @@ button,input,select,textarea{max-width:100%}
       <label class="span-2"><span><input id="materialFavorite" type="checkbox" style="width:auto;margin-right:8px">Show near the top as a favorite</span></label>
       <label class="span-2"><span><input id="materialActive" type="checkbox" checked style="width:auto;margin-right:8px">Available when building proposals</span></label>
     </div>
-    <div class="modal-actions"><button class="btn btn-light" onclick="closeModal('materialModal')">Cancel</button><button class="btn btn-primary" onclick="saveMaterial()">Save Scope Item</button></div>
+    <div class="modal-actions"><button class="btn btn-light" onclick="closeModal('materialModal')">Cancel</button><button class="btn btn-primary" onclick="saveMaterial()">Save Work Item</button></div>
   </div>
 </div>
 
 <div id="scopePickerModal" class="modal">
   <div class="modal-box scope-modal-box">
-    <div class="section-head"><div><span class="kicker">Price Book</span><h3>Add Scope Item</h3></div><button class="icon-btn" onclick="closeModal('scopePickerModal')" aria-label="Close">✕</button></div>
-    <div class="scope-searchbar"><input id="scopePickerSearch" placeholder="Search scope items" oninput="renderScopePicker()"><button class="btn btn-outline" onclick="openMaterialModal()">＋ New Item</button></div>
+    <div class="section-head"><div><span class="kicker">Price Book</span><h3>Quick Pick</h3></div><button class="icon-btn" onclick="closeModal('scopePickerModal')" aria-label="Close">✕</button></div>
+    <div class="scope-searchbar"><input id="scopePickerSearch" placeholder="Search work items" oninput="renderScopePicker()"><button class="btn btn-outline" onclick="openMaterialModal()">＋ New Item</button></div>
     <div class="scope-picker-grid"><div id="scopePickerCategories" class="scope-categories"></div><div id="scopePickerResults" class="scope-results"></div></div>
     <div id="scopeSelectedEditor" class="scope-selected" style="display:none">
       <h4 id="scopeSelectedName"></h4><p id="scopeSelectedCategory"></p>
@@ -852,7 +852,7 @@ button,input,select,textarea{max-width:100%}
 <div id="packageModal" class="modal">
   <div class="modal-box scope-modal-box">
     <h3 id="packageModalTitle">New Package</h3>
-    <div class="grid"><label>Package Name<input id="packageName" placeholder="Bathroom Standard"></label><label>Room / Category<input id="packageCategory" list="roomOptions" placeholder="Bathroom"></label><label class="span-2">Choose Scope Items<div id="packageItemChecklist" class="package-checklist"></div></label></div>
+    <div class="grid"><label>Package Name<input id="packageName" placeholder="Bathroom Standard"></label><label>Room / Category<input id="packageCategory" list="roomOptions" placeholder="Bathroom"></label><label class="span-2">Choose Work Items<div id="packageItemChecklist" class="package-checklist"></div></label></div>
     <div class="modal-actions"><button class="btn btn-light" onclick="closeModal('packageModal')">Cancel</button><button class="btn btn-primary" onclick="savePackage()">Save Package</button></div>
   </div>
 </div>
@@ -1247,7 +1247,7 @@ function refreshProposalRoomHeaders(){
   if(!itemRows.length){
     const empty=document.createElement('tr');
     empty.className='proposal-empty-row';
-    empty.innerHTML='<td colspan="5">Choose a room above, then add a scope item or package.</td>';
+    empty.innerHTML='<td colspan="5">Choose a room above, then add a work item or package.</td>';
     body.appendChild(empty);
     return;
   }
@@ -1287,8 +1287,8 @@ function addProposalRow(item={}){
   row.innerHTML=`
     <td>
       <input class="item-room" type="hidden" value="${escapeHtml(room)}">
-      <select class="item-select no-print">${materialOptions()}</select>
-      <input class="item-description" placeholder="Scope description">
+      <input class="item-select" type="hidden" value="${escapeHtml(item.materialId||'')}">
+      <input class="item-description" placeholder="Work description" aria-label="Work description">
     </td>
     <td><input class="item-qty" type="number" min="0" step="1" value="${item.qty??1}"></td>
     <td><input class="item-cost" type="number" min="0" step="0.01" value="${item.cost??0}"></td>
@@ -1783,7 +1783,7 @@ function pluralizeScopeDescription(text,qty,material){
 function openMaterialModal(id=null){
   editingMaterialId=id;
   const material=materials.find(m=>m.id===id);
-  $('materialModalTitle').textContent=material?'Edit Scope Item':'New Scope Item';
+  $('materialModalTitle').textContent=material?'Edit Work Item':'New Work Item';
   $('materialName').value=material?.name||'';
   $('materialCategory').value=material?.category||$('proposalRoom')?.value||'';
   $('materialCost').value=material?.cost??'';
@@ -1795,7 +1795,7 @@ function openMaterialModal(id=null){
 }
 function saveMaterial(){
   const name=$('materialName').value.trim();
-  if(!name){alert('Enter the customer-facing scope description.');return}
+  if(!name){alert('Enter the proposal description.');return}
   const old=materials.find(m=>m.id===editingMaterialId);
   const material={id:editingMaterialId||uid(),name,category:$('materialCategory').value.trim()||'Custom',cost:Number($('materialCost').value)||0,singular:$('materialSingular').value.trim(),plural:$('materialPlural').value.trim(),favorite:$('materialFavorite').checked,active:$('materialActive').checked,lastUsed:old?.lastUsed||0};
   const index=materials.findIndex(m=>m.id===material.id);
@@ -1803,7 +1803,7 @@ function saveMaterial(){
   DB.set('neuMaterialsV3',materials);scheduleCloudSave();closeModal('materialModal');renderMaterials();renderScopePicker();updateCounts();
 }
 function deleteMaterial(id){
-  if(!confirm('Delete this scope item? Existing proposals will not change.'))return;
+  if(!confirm('Delete this work item? Existing proposals will not change.'))return;
   materials=materials.filter(m=>m.id!==id);packages=packages.map(p=>({...p,itemIds:(p.itemIds||[]).filter(x=>x!==id)}));
   DB.set('neuMaterialsV3',materials);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderMaterials();
 }
@@ -1823,7 +1823,7 @@ function renderMaterials(){
   const query=($('materialSearch')?.value||'').toLowerCase();const category=$('materialCategoryFilter')?.value||'';
   refreshCategoryFilter();
   const rows=materials.filter(m=>`${m.name} ${m.category}`.toLowerCase().includes(query)&&(!category||m.category===category)).sort((a,b)=>(Number(b.favorite)-Number(a.favorite))||a.category.localeCompare(b.category)||a.name.localeCompare(b.name));
-  $('materialsTable').innerHTML=rows.length?rows.map(m=>`<tr><td data-label="Scope Item"><strong>${escapeHtml(m.name)}</strong>${m.active===false?'<small style="display:block;color:var(--muted)">Hidden</small>':''}</td><td data-label="Room / Category">${escapeHtml(m.category||'Custom')}</td><td data-label="Default Price"><strong>${money(m.cost)}</strong></td><td data-label="Favorite">${m.favorite?'<span class="scope-favorite">★</span>':'—'}</td><td data-label="Actions"><div class="compact-actions"><button class="icon-btn" title="Edit" onclick="openMaterialModal('${m.id}')">✎</button><button class="icon-btn danger" title="Delete" onclick="deleteMaterial('${m.id}')">⌫</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No scope items found.</td></tr>';
+  $('materialsTable').innerHTML=rows.length?rows.map(m=>`<tr><td data-label="Work Item"><strong>${escapeHtml(m.name)}</strong>${m.active===false?'<small style="display:block;color:var(--muted)">Hidden</small>':''}</td><td data-label="Room / Category">${escapeHtml(m.category||'Custom')}</td><td data-label="Default Price"><strong>${money(m.cost)}</strong></td><td data-label="Favorite">${m.favorite?'<span class="scope-favorite">★</span>':'—'}</td><td data-label="Actions"><div class="compact-actions"><button class="icon-btn" title="Edit" onclick="openMaterialModal('${m.id}')">✎</button><button class="icon-btn danger" title="Delete" onclick="deleteMaterial('${m.id}')">⌫</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No work items found.</td></tr>';
   $('materialCount').textContent=materials.length;renderPackages();
 }
 function openScopePickerFromRoom(){
@@ -1842,7 +1842,7 @@ function renderScopePicker(){
   let rows=materials.filter(m=>m.active!==false&&`${m.name} ${m.category}`.toLowerCase().includes(query));
   if(selectedScopeCategory==='Favorites')rows=rows.filter(m=>m.favorite);else rows=rows.filter(m=>m.category===selectedScopeCategory);
   rows.sort((a,b)=>(Number(b.favorite)-Number(a.favorite))||(b.lastUsed||0)-(a.lastUsed||0)||a.name.localeCompare(b.name));
-  $('scopePickerResults').innerHTML=rows.length?rows.map(m=>`<button class="scope-item-card" onclick="selectScopeItem('${m.id}')"><div><h4>${m.favorite?'<span class="scope-favorite">★</span> ':''}${escapeHtml(m.name)}</h4><p>${escapeHtml(m.category||'Custom')}</p></div><div class="scope-price">${money(m.cost)}</div></button>`).join(''):'<div class="empty">No scope items here yet.</div>';
+  $('scopePickerResults').innerHTML=rows.length?rows.map(m=>`<button class="scope-item-card" onclick="selectScopeItem('${m.id}')"><div><h4>${m.favorite?'<span class="scope-favorite">★</span> ':''}${escapeHtml(m.name)}</h4><p>${escapeHtml(m.category||'Custom')}</p></div><div class="scope-price">${money(m.cost)}</div></button>`).join(''):'<div class="empty">No work items here yet.</div>';
 }
 function selectScopeItem(id){
   const m=materials.find(x=>x.id===id);if(!m)return;selectedScopeItemId=id;$('scopeSelectedEditor').style.display='block';$('scopeSelectedName').textContent=m.name;$('scopeSelectedCategory').textContent=m.category||'Custom';$('scopeSelectedQty').value=1;$('scopeSelectedPrice').value=Number(m.cost)||0;$('scopeSelectedDescription').value=m.name;updateSelectedScope();
@@ -1859,7 +1859,7 @@ function addCustomItemForRoom(){
   if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}
 }
 function openPackageModal(id=null){editingPackageId=id;const pkg=packages.find(p=>p.id===id);$('packageModalTitle').textContent=pkg?'Edit Package':'New Package';$('packageName').value=pkg?.name||'';$('packageCategory').value=pkg?.category||$('proposalRoom')?.value||'';const selected=new Set(pkg?.itemIds||[]);$('packageItemChecklist').innerHTML=materials.filter(m=>m.active!==false).sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)).map(m=>`<label class="package-check"><input type="checkbox" value="${m.id}" ${selected.has(m.id)?'checked':''}><span><strong>${escapeHtml(m.name)}</strong><small style="display:block;color:var(--muted)">${escapeHtml(m.category)} · ${money(m.cost)}</small></span></label>`).join('');$('packageModal').classList.add('open')}
-function savePackage(){const name=$('packageName').value.trim();if(!name){alert('Enter a package name.');return}const itemIds=[...document.querySelectorAll('#packageItemChecklist input:checked')].map(i=>i.value);if(!itemIds.length){alert('Choose at least one scope item.');return}const old=packages.find(p=>p.id===editingPackageId);const pkg={id:editingPackageId||uid(),name,category:$('packageCategory').value.trim()||'Custom',itemIds,lastUsed:old?.lastUsed||0};const i=packages.findIndex(p=>p.id===pkg.id);if(i>=0)packages[i]=pkg;else packages.unshift(pkg);DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packageModal');renderPackages()}
+function savePackage(){const name=$('packageName').value.trim();if(!name){alert('Enter a package name.');return}const itemIds=[...document.querySelectorAll('#packageItemChecklist input:checked')].map(i=>i.value);if(!itemIds.length){alert('Choose at least one work item.');return}const old=packages.find(p=>p.id===editingPackageId);const pkg={id:editingPackageId||uid(),name,category:$('packageCategory').value.trim()||'Custom',itemIds,lastUsed:old?.lastUsed||0};const i=packages.findIndex(p=>p.id===pkg.id);if(i>=0)packages[i]=pkg;else packages.unshift(pkg);DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packageModal');renderPackages()}
 function deletePackage(id){if(!confirm('Delete this package?'))return;packages=packages.filter(p=>p.id!==id);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderPackages()}
 function renderPackages(){const el=$('packagesList');if(!el)return;el.innerHTML=packages.length?packages.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);const total=items.reduce((sum,m)=>sum+(Number(m.cost)||0),0);return `<div class="package-card"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category||'Custom')} · ${items.length} items · ${money(total)}</small></div><div class="compact-actions"><button class="icon-btn" onclick="openPackageModal('${p.id}')">✎</button><button class="icon-btn danger" onclick="deletePackage('${p.id}')">⌫</button></div></div><ul>${items.map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></div>`}).join(''):'<div class="empty">No packages yet. Create a package for the room combinations you use repeatedly.</div>'}
 function openPackagePickerFromRoom(){const room=$('proposalRoom')?.value.trim()||'';if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}$('packagePickerRoomText').textContent=`Showing packages for ${room}.`;let rows=packages.filter(p=>!room||p.category===room);if(!rows.length)rows=packages;$('packagePickerList').innerHTML=rows.length?rows.map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);return `<button class="package-card" style="text-align:left;width:100%" onclick="addPackageToProposal('${p.id}')"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category)} · ${items.length} items</small></div><strong>${money(items.reduce((s,m)=>s+(Number(m.cost)||0),0))}</strong></div><ul>${items.slice(0,5).map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></button>`}).join(''):'<div class="empty">No packages have been created yet.</div>';$('packagePickerModal').classList.add('open')}
