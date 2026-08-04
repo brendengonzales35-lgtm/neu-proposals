@@ -705,10 +705,12 @@ td input,td select{padding:8px 9px}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://zovvapmfhnltdmrgkvnk.supabase.com';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_GWQcgsvKrwhnyNktAUjxaA_gmyg39pT';
 const CLOUD_ROW_ID='nes-proposals';
+let cloudClient=null;
 let cloudReady=false;
 let cloudApplying=false;
 let cloudSaveTimer=null;
@@ -833,43 +835,46 @@ function currentAppState(){
   };
 }
 
-function cloudHeaders(extra={}){
-  // Supabase publishable keys are API keys, not JWTs.
-  // Sending an sb_publishable_ key as a Bearer token causes an Invalid JWT response.
-  return {
-    apikey:SUPABASE_PUBLISHABLE_KEY,
-    ...extra
-  };
+function cloudErrorMessage(error){
+  const message=String(error?.message||error||'Unknown error');
+  if(/Failed to fetch|NetworkError|Load failed/i.test(message)){
+    return 'Unable to reach Supabase. Check that the Project URL is copied exactly and that the Supabase project is active.';
+  }
+  if(/Invalid API key|invalid.*key|401|JWT/i.test(message)){
+    return 'Supabase rejected the publishable key. Copy the Publishable key again from Supabase Settings → API Keys.';
+  }
+  if(/app_state|relation.*does not exist|schema cache|PGRST205/i.test(message)){
+    return 'The app_state table is missing from the Data API. Run the app_state setup SQL and reload the Supabase schema.';
+  }
+  if(/permission|policy|row-level|42501|403/i.test(message)){
+    return 'Supabase permissions are blocking access. Re-run the app_state grants and anon policies.';
+  }
+  return message;
 }
 
 function scheduleCloudSave(){
   clearTimeout(cloudSaveTimer);
-  cloudSaveTimer=setTimeout(()=>saveCloudState(),450);
+  cloudSaveTimer=setTimeout(()=>saveCloudState(),700);
 }
 
 async function saveCloudState(force=false){
-  if((!cloudReady&&!force)||cloudApplying){return}
+  if((!cloudReady&&!force)||cloudApplying)return;
   if(cloudSaving){cloudSaveQueued=true;return}
   cloudSaving=true;
   try{
+    if(!cloudClient)throw new Error('Supabase client is not available');
     const updatedAt=new Date().toISOString();
-    const response=await fetch(`${SUPABASE_URL}/rest/v1/app_state?on_conflict=id`,{
-      method:'POST',
-      headers:cloudHeaders({
-        'Content-Type':'application/json',
-        Prefer:'resolution=merge-duplicates,return=representation'
-      }),
-      body:JSON.stringify({id:CLOUD_ROW_ID,data:currentAppState(),updated_at:updatedAt})
-    });
-    if(!response.ok){
-      const detail=await response.text();
-      throw new Error(`Cloud save failed (${response.status})${detail?`: ${detail.slice(0,220)}`:''}`);
-    }
-    const rows=await response.json();
-    lastCloudUpdatedAt=rows?.[0]?.updated_at||updatedAt;
+    const {data,error}=await cloudClient
+      .from('app_state')
+      .upsert({id:CLOUD_ROW_ID,data:currentAppState(),updated_at:updatedAt},{onConflict:'id'})
+      .select('updated_at')
+      .single();
+    if(error)throw error;
+    lastCloudUpdatedAt=data?.updated_at||updatedAt;
+    removeCloudNotice();
   }catch(error){
-    console.error(error);
-    showCloudNotice('Could not save to the shared cloud. Your changes are still saved on this device.');
+    console.error('Cloud save error:',error);
+    showCloudNotice(`Cloud save failed: ${cloudErrorMessage(error)}`);
   }finally{
     cloudSaving=false;
     if(cloudSaveQueued){cloudSaveQueued=false;saveCloudState()}
@@ -901,42 +906,53 @@ function applyCloudState(data){
 }
 
 async function fetchCloudState(apply=true){
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/app_state?id=eq.${encodeURIComponent(CLOUD_ROW_ID)}&select=data,updated_at`,{
-    headers:cloudHeaders()
-  });
-  if(!response.ok){
-    const detail=await response.text();
-    throw new Error(`Cloud load failed (${response.status})${detail?`: ${detail.slice(0,220)}`:''}`);
+  if(!cloudClient)throw new Error('Supabase client is not available');
+  const {data,error}=await cloudClient
+    .from('app_state')
+    .select('data,updated_at')
+    .eq('id',CLOUD_ROW_ID)
+    .maybeSingle();
+  if(error)throw error;
+  if(!data)return null;
+  if(apply&&data.updated_at!==lastCloudUpdatedAt){
+    lastCloudUpdatedAt=data.updated_at||'';
+    applyCloudState(data.data);
   }
-  const rows=await response.json();
-  const row=rows?.[0];
-  if(!row)return null;
-  if(apply&&row.updated_at!==lastCloudUpdatedAt){
-    lastCloudUpdatedAt=row.updated_at||'';
-    applyCloudState(row.data);
-  }
-  return row;
+  return data;
 }
 
+let cloudPollTimer=null;
 async function connectSharedCloud(){
   try{
+    if(!window.supabase?.createClient)throw new Error('Supabase library did not load');
+    cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+      auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
+    });
     const row=await fetchCloudState(false);
     cloudReady=true;
     if(row){
       lastCloudUpdatedAt=row.updated_at||'';
-      applyCloudState(row.data);
+      const cloudHasData=row.data&&typeof row.data==='object'&&Object.keys(row.data).length>0;
+      if(cloudHasData)applyCloudState(row.data);
+      else await saveCloudState(true);
     }else{
       await saveCloudState(true);
     }
-    setInterval(async()=>{
+    removeCloudNotice();
+    clearInterval(cloudPollTimer);
+    cloudPollTimer=setInterval(async()=>{
       if(document.hidden||cloudSaving)return;
-      try{await fetchCloudState(true)}catch(error){console.error(error)}
-    },8000);
+      try{await fetchCloudState(true)}catch(error){console.error('Cloud refresh error:',error)}
+    },10000);
   }catch(error){
-    console.error(error);
+    console.error('Cloud connection error:',error);
     cloudReady=false;
-    showCloudNotice(`Shared cloud connection failed: ${error.message}`);
+    showCloudNotice(`Cloud connection failed: ${cloudErrorMessage(error)}`);
   }
+}
+
+function removeCloudNotice(){
+  document.getElementById('cloudNotice')?.remove();
 }
 
 function showCloudNotice(message){
@@ -944,12 +960,18 @@ function showCloudNotice(message){
   if(!notice){
     notice=document.createElement('div');
     notice.id='cloudNotice';
-    notice.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 12px 32px rgba(15,23,42,.18)';
+    notice.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:12px;padding:12px 14px;font-weight:700;box-shadow:0 12px 32px rgba(15,23,42,.18);display:flex;align-items:center;justify-content:space-between;gap:12px';
     document.body.appendChild(notice);
   }
-  notice.textContent=message;
-  clearTimeout(notice._timer);
-  notice._timer=setTimeout(()=>notice.remove(),7000);
+  notice.innerHTML='';
+  const label=document.createElement('span');
+  label.textContent=message;
+  const retry=document.createElement('button');
+  retry.type='button';
+  retry.textContent='Retry';
+  retry.style.cssText='border:1px solid #fdba74;background:white;color:#9a3412;border-radius:8px;padding:7px 11px;font-weight:800;cursor:pointer;flex:0 0 auto';
+  retry.onclick=()=>connectSharedCloud();
+  notice.append(label,retry);
 }
 
 const ROUTES={
