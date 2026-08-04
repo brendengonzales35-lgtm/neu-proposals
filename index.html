@@ -1,4 +1,4 @@
-l<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -280,6 +280,8 @@ td input,td select{padding:8px 9px}
 .field-help{display:block;color:var(--muted);font-size:11px;font-weight:500;line-height:1.35;margin-top:5px}
 @media(max-width:800px){.price-test{grid-template-columns:1fr 1fr}.price-test label:first-child,.price-test-total{grid-column:1/-1}.rule-values{grid-template-columns:1fr}.pricing-rule-grid{grid-template-columns:1fr}}
 
+
+.scope-toolbar{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:12px;align-items:end;padding:15px;border:1px solid var(--border);border-radius:15px;background:#f8fafc;margin-bottom:16px}.scope-toolbar label{margin:0}.scope-toolbar .btn{min-height:44px}.scope-picker-grid{display:grid;grid-template-columns:220px 1fr;gap:16px}.scope-categories{display:grid;gap:7px;align-content:start}.scope-category{border:1px solid var(--border);background:#fff;border-radius:11px;padding:11px 12px;text-align:left;font-weight:800;color:var(--text)}.scope-category.active{background:#eaf3ff;border-color:#8bbcff;color:#0755a5}.scope-results{display:grid;gap:10px;max-height:460px;overflow:auto;padding-right:3px}.scope-item-card{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1px solid var(--border);border-radius:13px;padding:13px;background:#fff}.scope-item-card:hover{border-color:#93b9e5;background:#fbfdff}.scope-item-card h4{margin:0 0 4px;font-size:15px}.scope-item-card p{margin:0;color:var(--muted);font-size:12px}.scope-price{font-size:18px;font-weight:900;color:var(--primary)}.scope-favorite{color:#d97706}.scope-edit-grid{display:grid;grid-template-columns:1fr 130px;gap:12px}.scope-edit-grid .span-2{grid-column:1/-1}.package-list{display:grid;gap:12px}.package-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:#fff}.package-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.package-card ul{margin:10px 0 0;padding-left:20px;color:var(--muted)}.pricebook-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.pricebook-tab{border:1px solid var(--border);background:#fff;padding:9px 13px;border-radius:999px;font-weight:800}.pricebook-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}.pricebook-panel{display:none}.pricebook-panel.active{display:block}.scope-modal-box{max-width:920px}.scope-searchbar{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px}.scope-selected{border:1px solid #bfdbfe;background:#eff6ff;border-radius:14px;padding:14px;margin-top:14px}.scope-selected h4{margin:0 0 5px}.scope-selected-controls{display:grid;grid-template-columns:160px 160px 1fr;gap:12px;margin-top:12px;align-items:end}.package-checklist{display:grid;gap:8px;max-height:360px;overflow:auto;border:1px solid var(--border);border-radius:12px;padding:12px}.package-check{display:flex;gap:10px;align-items:flex-start;padding:9px;border-radius:9px}.package-check:hover{background:#f8fafc}.package-check input{width:auto;margin-top:3px}@media(max-width:760px){.scope-toolbar,.scope-picker-grid,.scope-selected-controls,.scope-edit-grid{grid-template-columns:1fr}.scope-category{padding:13px}.scope-modal-box{width:min(96vw,920px)}}
 @page{size:letter;margin:.5in .72in .55in}
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
@@ -407,7 +409,7 @@ td input,td select{padding:8px 9px}
     <a href="#new-proposal" data-view="proposalView"><span class="nav-icon" data-icon="file-plus"></span>New Proposal</a>
     <a href="#jobs" data-view="jobsView"><span class="nav-icon" data-icon="building"></span>Jobs</a>
     <a href="#proposals" data-view="allView"><span class="nav-icon" data-icon="files"></span>All Proposals</a>
-    <a href="#materials" data-view="materialsView"><span class="nav-icon" data-icon="package"></span>Materials</a>
+    <a href="#materials" data-view="materialsView"><span class="nav-icon" data-icon="package"></span>Price Book</a>
     <a href="#settings" data-view="settingsView"><span class="nav-icon" data-icon="settings"></span>Settings</a>
   </nav>
 </aside>
@@ -432,7 +434,7 @@ td input,td select{padding:8px 9px}
       <div class="section-head"><div><span class="kicker">Quick actions</span><h3>Start Working</h3></div></div>
       <div class="quick-grid">
         <div class="quick-card" onclick="showView('proposalView');newProposal()"><div class="icon-box" data-icon="file-plus"></div><h3>New Proposal</h3><p>Start a new estimate.</p></div>
-        <div class="quick-card" onclick="showView('materialsView')"><div class="icon-box" data-icon="package"></div><h3>Add Material</h3><p>Update your cost list.</p></div>
+        <div class="quick-card" onclick="showView('materialsView')"><div class="icon-box" data-icon="package"></div><h3>Price Book</h3><p>Edit scope items and packages.</p></div>
         <div class="quick-card" onclick="openJobModal()"><div class="icon-box" data-icon="folder-plus"></div><h3>Add Builder / Job</h3><p>Create a builder folder and job.</p></div>
       </div>
     </div>
@@ -445,7 +447,7 @@ td input,td select{padding:8px 9px}
 
 <section id="proposalView" class="view">
   <div class="hero">
-    <div><h2 id="proposalHeading">Create Proposal</h2><p>Attach the proposal to a job, choose a room or section, and build the scope one line at a time.</p></div>
+    <div><h2 id="proposalHeading">Create Proposal</h2><p>Attach the proposal to a job, choose a room, and add saved scope items or packages in a few taps.</p></div>
     <div class="hero-stat"><span>Proposal Total</span><strong id="heroTotal">$0.00</strong></div>
   </div>
 
@@ -472,14 +474,15 @@ td input,td select{padding:8px 9px}
 
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Line items</span><h3>Proposal Materials</h3><p>Choose the room first, then build or add the line item.</p></div>
+      <div><span class="kicker">Room-by-room scope</span><h3>Proposal Scope</h3><p>Choose a room, then tap a saved scope item or package from your Price Book.</p></div>
     </div>
-    <div class="room-first-bar no-print">
+    <div class="scope-toolbar no-print">
       <label>Room / Section
         <input id="proposalRoom" list="roomOptions" placeholder="Kitchen, Bathroom, Bedroom...">
       </label>
-      <button class="btn btn-primary" onclick="openAssemblyBuilderFromRoom()"><span data-icon="plus"></span>Build Item</button>
-      <button class="btn btn-outline" onclick="addCustomItemForRoom()"><span data-icon="plus"></span>Custom Line</button>
+      <button class="btn btn-primary" onclick="openScopePickerFromRoom()"><span data-icon="plus"></span>Add Scope Item</button>
+      <button class="btn btn-outline" onclick="openPackagePickerFromRoom()"><span data-icon="package"></span>Add Package</button>
+      <button class="btn btn-light" onclick="addCustomItemForRoom()"><span data-icon="plus"></span>Custom Line</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -541,43 +544,31 @@ td input,td select{padding:8px 9px}
 
 <section id="materialsView" class="view">
   <div class="hero">
-    <div><h2>Fixture & Device Library</h2><p>Add, rename, price, hide, or edit fixtures, devices, circuits, and equipment used by the Build Item tool.</p></div>
-    <div class="hero-stat"><span>Saved Materials</span><strong id="materialCount">0</strong></div>
+    <div><h2>Price Book</h2><p>Manage the electrical scope items and room packages you sell.</p></div>
+    <div class="hero-stat"><span>Scope Items</span><strong id="materialCount">0</strong></div>
   </div>
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Editable catalog</span><h3>Fixtures, Devices & Automatic Pricing</h3></div>
-      <button class="btn btn-primary" onclick="openMaterialModal()">＋ Add Fixture / Device</button>
+      <div><span class="kicker">Simple default pricing</span><h3>Scope Items & Packages</h3></div>
+      <div class="actions"><button class="btn btn-primary" onclick="openMaterialModal()">＋ New Scope Item</button><button class="btn btn-outline" onclick="openPackageModal()">＋ New Package</button></div>
     </div>
-    <div class="material-tabs">
-      <button id="materialCatalogTab" class="material-tab active" onclick="showMaterialsPanel('catalog')">Fixture & Device Library</button>
-      <button id="materialPricingTab" class="material-tab" onclick="showMaterialsPanel('pricing')">Automatic Pricing Rules</button>
+    <div class="pricebook-tabs">
+      <button id="scopeItemsTab" class="pricebook-tab active" onclick="showPriceBookPanel('items')">Scope Items</button>
+      <button id="packagesTab" class="pricebook-tab" onclick="showPriceBookPanel('packages')">Packages</button>
     </div>
-    <div id="materialCatalogPanel" class="material-panel active">
+    <div id="scopeItemsPanel" class="pricebook-panel active">
       <div class="search-row" style="margin-bottom:12px">
-        <input id="materialSearch" placeholder="Search material or category" oninput="renderMaterials()">
-        <select id="materialCategoryFilter" onchange="renderMaterials()" style="max-width:220px"><option value="">All Categories</option></select>
+        <input id="materialSearch" placeholder="Search description or room" oninput="renderMaterials()">
+        <select id="materialCategoryFilter" onchange="renderMaterials()" style="max-width:220px"><option value="">All Rooms / Categories</option></select>
       </div>
       <div class="table-wrap">
         <table class="mobile-cards">
-          <thead><tr><th>Name</th><th>Category</th><th>Starting Price</th><th>Visible</th><th style="text-align:right">Actions</th></tr></thead>
+          <thead><tr><th>Scope Item</th><th>Room / Category</th><th>Default Price</th><th>Favorite</th><th style="text-align:right">Actions</th></tr></thead>
           <tbody id="materialsTable"></tbody>
         </table>
       </div>
     </div>
-    <div id="materialPricingPanel" class="material-panel">
-      <div class="pricing-explainer">
-        <strong>How automatic pricing works</strong>
-        The starting price covers the first fixture or device and the first switch when applicable. The app then adds the saved amount for each additional device and each additional switch. Only the final price appears on the proposal.
-      </div>
-      <div class="price-test">
-        <label>Test a pricing rule<select id="pricingTestMaterial" onchange="updatePricingTest()"></select></label>
-        <label>Devices / Fixtures<input id="pricingTestDevices" type="number" min="1" value="1" oninput="updatePricingTest()"></label>
-        <label>Switches / Controls<input id="pricingTestControls" type="number" min="0" value="1" oninput="updatePricingTest()"></label>
-        <div class="price-test-total"><span>Automatic price</span><strong id="pricingTestTotal">$0.00</strong></div>
-      </div>
-      <div id="pricingRuleCards" class="pricing-rule-grid"></div>
-    </div>
+    <div id="packagesPanel" class="pricebook-panel"><div id="packagesList" class="package-list"></div></div>
   </div>
 </section>
 
@@ -688,27 +679,53 @@ td input,td select{padding:8px 9px}
 
 <div id="materialModal" class="modal">
   <div class="modal-box">
-    <h3 id="materialModalTitle">Add Fixture / Device</h3>
-    <div class="grid">
-      <label class="span-2">Name<input id="materialName" placeholder="Example: 6&quot; LED recessed fixture"></label>
-      <label>Category<input id="materialCategory" placeholder="Lighting, Fans, Receptacles..."></label>
-      <label>Starting Price<input id="materialCost" type="number" min="0" step="0.01"><span class="field-help">Price for the first device or fixture. This is the minimum automatic price.</span></label>
-      <label>Each Additional Device / Fixture<input id="materialExtraCost" type="number" min="0" step="0.01"><span class="field-help">Added for device number 2, 3, 4, and so on.</span></label>
-      <label>Each Additional Switch / Control<input id="materialControlCost" type="number" min="0" step="0.01"><span class="field-help">Added for switch number 2, 3, 4, and so on.</span></label>
-      <label class="span-2">Available Sizes / Styles<input id="materialSizes" placeholder='Example: 4&quot;, 5&quot;, 6&quot; (comma separated)'></label>
-      <label>Singular Wording<input id="materialSingular" placeholder="fixture"></label>
-      <label>Plural Wording<input id="materialPlural" placeholder="fixtures"></label>
-      <label class="span-2"><span><input id="materialActive" type="checkbox" checked style="width:auto;margin-right:8px">Show in Assembly Builder</span></label>
+    <h3 id="materialModalTitle">New Scope Item</h3>
+    <div class="scope-edit-grid">
+      <label class="span-2">Customer-Facing Description<textarea id="materialName" style="min-height:88px" placeholder="Example: Wire 1 20A circuit for bathroom receptacles"></textarea></label>
+      <label>Room / Category<input id="materialCategory" list="roomOptions" placeholder="Bathroom"></label>
+      <label>Default Price<input id="materialCost" type="number" min="0" step="0.01"></label>
+      <label>Singular Quantity Word<input id="materialSingular" placeholder="circuit"></label>
+      <label>Plural Quantity Word<input id="materialPlural" placeholder="circuits"></label>
+      <label class="span-2"><span><input id="materialFavorite" type="checkbox" style="width:auto;margin-right:8px">Show near the top as a favorite</span></label>
+      <label class="span-2"><span><input id="materialActive" type="checkbox" checked style="width:auto;margin-right:8px">Available when building proposals</span></label>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-light" onclick="closeModal('materialModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMaterial()">Save</button>
+    <div class="modal-actions"><button class="btn btn-light" onclick="closeModal('materialModal')">Cancel</button><button class="btn btn-primary" onclick="saveMaterial()">Save Scope Item</button></div>
+  </div>
+</div>
+
+<div id="scopePickerModal" class="modal">
+  <div class="modal-box scope-modal-box">
+    <div class="section-head"><div><span class="kicker">Price Book</span><h3>Add Scope Item</h3></div><button class="icon-btn" onclick="closeModal('scopePickerModal')" aria-label="Close">✕</button></div>
+    <div class="scope-searchbar"><input id="scopePickerSearch" placeholder="Search scope items" oninput="renderScopePicker()"><button class="btn btn-outline" onclick="openMaterialModal()">＋ New Item</button></div>
+    <div class="scope-picker-grid"><div id="scopePickerCategories" class="scope-categories"></div><div id="scopePickerResults" class="scope-results"></div></div>
+    <div id="scopeSelectedEditor" class="scope-selected" style="display:none">
+      <h4 id="scopeSelectedName"></h4><p id="scopeSelectedCategory"></p>
+      <div class="scope-selected-controls">
+        <label>Quantity<div class="qty-control"><button type="button" onclick="stepScopeQty(-1)">−</button><input id="scopeSelectedQty" type="number" min="1" value="1" oninput="updateSelectedScope()"><button type="button" onclick="stepScopeQty(1)">+</button></div></label>
+        <label>Final Price<input id="scopeSelectedPrice" type="number" min="0" step="0.01"></label>
+        <label>Description<textarea id="scopeSelectedDescription" style="min-height:72px"></textarea></label>
+      </div>
+      <div class="modal-actions"><button class="btn btn-primary" onclick="addSelectedScopeToProposal()">Add to Proposal</button></div>
     </div>
   </div>
 </div>
 
+<div id="packagePickerModal" class="modal">
+  <div class="modal-box scope-modal-box">
+    <div class="section-head"><div><span class="kicker">Room package</span><h3>Add Package</h3></div><button class="icon-btn" onclick="closeModal('packagePickerModal')" aria-label="Close">✕</button></div>
+    <p id="packagePickerRoomText" class="move-summary"></p><div id="packagePickerList" class="package-list"></div>
+  </div>
+</div>
 
-<div id="assemblyBuilderModal" class="modal">
+<div id="packageModal" class="modal">
+  <div class="modal-box scope-modal-box">
+    <h3 id="packageModalTitle">New Package</h3>
+    <div class="grid"><label>Package Name<input id="packageName" placeholder="Bathroom Standard"></label><label>Room / Category<input id="packageCategory" list="roomOptions" placeholder="Bathroom"></label><label class="span-2">Choose Scope Items<div id="packageItemChecklist" class="package-checklist"></div></label></div>
+    <div class="modal-actions"><button class="btn btn-light" onclick="closeModal('packageModal')">Cancel</button><button class="btn btn-primary" onclick="savePackage()">Save Package</button></div>
+  </div>
+</div>
+
+<div id="assemblyBuilderModal" class="modal" style="display:none!important">
   <div class="modal-box builder-modal-box">
     <div class="section-head">
       <div><span class="kicker">Fast line-item generator</span><h3>Build Item</h3></div>
@@ -798,43 +815,28 @@ const cleanJobName=value=>{
 const cleanBuilderName=value=>String(value||'').trim()||'Unassigned Builder';
 
 const defaultMaterials=()=>[
-  {id:uid(),name:'4" LED recessed fixture',category:'Lighting',cost:225,extraCost:125,controlCost:80,sizes:['4"'],singular:'fixture',plural:'fixtures',active:true},
-  {id:uid(),name:'5" LED recessed fixture',category:'Lighting',cost:235,extraCost:130,controlCost:80,sizes:['5"'],singular:'fixture',plural:'fixtures',active:true},
-  {id:uid(),name:'6" LED recessed fixture',category:'Lighting',cost:240,extraCost:135,controlCost:80,sizes:['6"'],singular:'fixture',plural:'fixtures',active:true},
-  {id:uid(),name:'wafer light',category:'Lighting',cost:225,extraCost:125,controlCost:80,sizes:['3"','4"','6"'],singular:'wafer light',plural:'wafer lights',active:true},
-  {id:uid(),name:'owner provided ceiling fixture',category:'Lighting',cost:200,extraCost:135,controlCost:80,sizes:[],singular:'fixture',plural:'fixtures',active:true},
-  {id:uid(),name:'vanity fixture',category:'Lighting',cost:210,extraCost:140,controlCost:80,sizes:['single','double','triple'],singular:'vanity fixture',plural:'vanity fixtures',active:true},
-  {id:uid(),name:'wall sconce',category:'Lighting',cost:210,extraCost:140,controlCost:80,sizes:[],singular:'sconce',plural:'sconces',active:true},
-  {id:uid(),name:'hanging fixture',category:'Lighting',cost:230,extraCost:150,controlCost:80,sizes:['pendant','chandelier'],singular:'hanging fixture',plural:'hanging fixtures',active:true},
-  {id:uid(),name:'outdoor coach light',category:'Lighting',cost:235,extraCost:145,controlCost:80,sizes:['wall','post'],singular:'coach light',plural:'coach lights',active:true},
-  {id:uid(),name:'under-cabinet light',category:'Lighting',cost:190,extraCost:105,controlCost:80,sizes:['12"','18"','24"','36"'],singular:'under-cabinet light',plural:'under-cabinet lights',active:true},
-  {id:uid(),name:'bath fan',category:'Fans',cost:260,extraCost:180,controlCost:85,sizes:['standard','fan/light combo'],singular:'bath fan',plural:'bath fans',active:true},
-  {id:uid(),name:'ceiling fan',category:'Fans',cost:325,extraCost:225,controlCost:95,sizes:['standard','outdoor','fan/light combo'],singular:'ceiling fan',plural:'ceiling fans',active:true},
-  {id:uid(),name:'standard receptacle',category:'Receptacles',cost:125,extraCost:75,controlCost:0,sizes:['duplex','quad'],singular:'receptacle',plural:'receptacles',active:true},
-  {id:uid(),name:'GFI receptacle',category:'Receptacles',cost:165,extraCost:105,controlCost:0,sizes:['duplex','quad'],singular:'GFI receptacle',plural:'GFI receptacles',active:true},
-  {id:uid(),name:'weatherproof receptacle',category:'Receptacles',cost:185,extraCost:120,controlCost:0,sizes:['in-use cover','flush cover'],singular:'weatherproof receptacle',plural:'weatherproof receptacles',active:true},
-  {id:uid(),name:'floor receptacle',category:'Receptacles',cost:295,extraCost:220,controlCost:0,sizes:['round','rectangular'],singular:'floor receptacle',plural:'floor receptacles',active:true},
-  {id:uid(),name:'switched receptacle',category:'Receptacles',cost:195,extraCost:105,controlCost:80,sizes:[],singular:'switched receptacle',plural:'switched receptacles',active:true},
-  {id:uid(),name:'smoke detector',category:'Safety',cost:175,extraCost:110,controlCost:0,sizes:[],singular:'smoke detector',plural:'smoke detectors',active:true},
-  {id:uid(),name:'smoke detector/CO combo',category:'Safety',cost:210,extraCost:135,controlCost:0,sizes:[],singular:'smoke detector/CO combo',plural:'smoke detector/CO combos',active:true},
-  {id:uid(),name:'TV box with receptacle',category:'Low Voltage',cost:185,extraCost:115,controlCost:0,sizes:['single-gang','double-gang'],singular:'TV box with receptacle',plural:'TV boxes with receptacles',active:true},
-  {id:uid(),name:'data stub',category:'Low Voltage',cost:125,extraCost:75,controlCost:0,sizes:['Cat6','fiber'],singular:'data stub',plural:'data stubs',active:true},
-  {id:uid(),name:'15A circuit',category:'Circuits',cost:325,extraCost:245,controlCost:0,sizes:['AFC','standard'],singular:'15A circuit',plural:'15A circuits',active:true},
-  {id:uid(),name:'20A circuit',category:'Circuits',cost:375,extraCost:285,controlCost:0,sizes:['GFI','AFC','standard'],singular:'20A circuit',plural:'20A circuits',active:true},
-  {id:uid(),name:'30A circuit',category:'Circuits',cost:525,extraCost:390,controlCost:0,sizes:['standard'],singular:'30A circuit',plural:'30A circuits',active:true},
-  {id:uid(),name:'50A circuit',category:'Circuits',cost:725,extraCost:540,controlCost:0,sizes:['range','EV charger','hot tub'],singular:'50A circuit',plural:'50A circuits',active:true},
-  {id:uid(),name:'washer connection',category:'Equipment',cost:350,extraCost:250,controlCost:0,sizes:[],singular:'washer connection',plural:'washer connections',active:true},
-  {id:uid(),name:'dryer connection',category:'Equipment',cost:450,extraCost:330,controlCost:0,sizes:['30A'],singular:'dryer connection',plural:'dryer connections',active:true},
-  {id:uid(),name:'range connection',category:'Equipment',cost:625,extraCost:450,controlCost:0,sizes:['40A','50A'],singular:'range connection',plural:'range connections',active:true},
-  {id:uid(),name:'water heater connection',category:'Equipment',cost:425,extraCost:315,controlCost:0,sizes:['30A'],singular:'water heater connection',plural:'water heater connections',active:true},
-  {id:uid(),name:'dishwasher receptacle',category:'Equipment',cost:275,extraCost:190,controlCost:0,sizes:['15A','20A'],singular:'dishwasher receptacle',plural:'dishwasher receptacles',active:true},
-  {id:uid(),name:'microwave receptacle',category:'Equipment',cost:325,extraCost:235,controlCost:0,sizes:['20A'],singular:'microwave receptacle',plural:'microwave receptacles',active:true},
-  {id:uid(),name:'refrigerator receptacle',category:'Equipment',cost:275,extraCost:190,controlCost:0,sizes:['15A','20A'],singular:'refrigerator receptacle',plural:'refrigerator receptacles',active:true},
-  {id:uid(),name:'air handler / heat strip circuit',category:'HVAC',cost:650,extraCost:480,controlCost:0,sizes:['20A','30A','40A','50A','60A'],singular:'air handler circuit',plural:'air handler circuits',active:true},
-  {id:uid(),name:'A/C condenser circuit',category:'HVAC',cost:625,extraCost:460,controlCost:0,sizes:['20A','30A','40A','50A','60A'],singular:'A/C circuit',plural:'A/C circuits',active:true},
-  {id:uid(),name:'200A service',category:'Service',cost:4800,extraCost:0,controlCost:0,sizes:['overhead','underground','feed-through panel'],singular:'200A service',plural:'200A services',active:true},
-  {id:uid(),name:'200A panel',category:'Service',cost:2600,extraCost:0,controlCost:0,sizes:['30 circuit','40 circuit','42 circuit'],singular:'200A panel',plural:'200A panels',active:true}
-];
+  {id:uid(),name:'Wire 1 20A circuit for bathroom receptacles',category:'Bathroom',cost:425,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 switch for bath fan',category:'Bathroom',cost:265,singular:'switch',plural:'switches',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 switch for vanity fixture',category:'Bathroom',cost:210,singular:'switch',plural:'switches',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 switch for 1 bath fan',category:'Bathroom',cost:325,singular:'bath fan',plural:'bath fans',favorite:false,active:true},
+  {id:uid(),name:'Wire 1 15A AFC circuit for bedroom lights and receptacles',category:'Bedroom',cost:395,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire 2 switches for bedroom ceiling fan and light',category:'Bedroom',cost:420,singular:'set',plural:'sets',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 smoke detector',category:'Bedroom',cost:175,singular:'detector',plural:'detectors',favorite:true,active:true},
+  {id:uid(),name:'Wire 2 20A small appliance circuits for kitchen receptacles',category:'Kitchen',cost:780,singular:'set',plural:'sets',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 20A circuit for microwave receptacle',category:'Kitchen',cost:325,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 15A circuit for refrigerator receptacle',category:'Kitchen',cost:275,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 15A circuit for dishwasher receptacle',category:'Kitchen',cost:275,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 switch for under-cabinet lights',category:'Kitchen',cost:285,singular:'switch',plural:'switches',favorite:false,active:true},
+  {id:uid(),name:'Wire 1 20A circuit for utility room receptacle',category:'Laundry',cost:375,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire for washer',category:'Laundry',cost:350,singular:'connection',plural:'connections',favorite:true,active:true},
+  {id:uid(),name:'Wire for dryer',category:'Laundry',cost:450,singular:'connection',plural:'connections',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 20A circuit for outside receptacles with GFI protection',category:'Exterior',cost:425,singular:'circuit',plural:'circuits',favorite:true,active:true},
+  {id:uid(),name:'Wire 1 switch for outside coach lights',category:'Exterior',cost:295,singular:'switch',plural:'switches',favorite:true,active:true},
+  {id:uid(),name:'Provide 1 TV box with receptacle',category:'Low Voltage',cost:185,singular:'TV box',plural:'TV boxes',favorite:true,active:true},
+  {id:uid(),name:'Provide 1 data stub',category:'Low Voltage',cost:125,singular:'data stub',plural:'data stubs',favorite:true,active:true},
+  {id:uid(),name:'Provide 200A service',category:'Service & Panels',cost:4800,singular:'service',plural:'services',favorite:true,active:true},
+  {id:uid(),name:'Provide 200A inside panel',category:'Service & Panels',cost:2600,singular:'panel',plural:'panels',favorite:true,active:true}
+]
 const safeArray=(key,fallback=[])=>{
   const value=DB.get(key,fallback);
   return Array.isArray(value)?value:fallback;
@@ -844,7 +846,15 @@ const safeObject=(key,fallback={})=>{
   return value && typeof value==='object' && !Array.isArray(value)?value:fallback;
 };
 
-let materials=safeArray('neuMaterialsV3',defaultMaterials());
+let materials=safeArray('neuMaterialsV3',defaultMaterials()).map(m=>({...m,favorite:!!m.favorite,active:m.active!==false}));
+const defaultPackages=()=>[];
+let packages=safeArray('nesPackagesV1',defaultPackages());
+function migratePriceBook(){
+  const hasScopeItems=materials.some(m=>/^(Wire|Provide|Install|Connect)/i.test(String(m?.name||'')));
+  if(!hasScopeItems){materials=defaultMaterials();DB.set('neuMaterialsV3',materials)}
+  materials=materials.map(m=>({...m,cost:Number(m.cost)||0,category:m.category||'Custom',favorite:!!m.favorite,active:m.active!==false}));
+}
+migratePriceBook();
 let customers=safeArray('neuCustomersV3',[]);
 let proposals=safeArray('neuProposalsV3',[]);
 let jobs=safeArray('nesJobsV4',[]).map(job=>({...job,name:cleanJobName(job?.name),builderName:cleanBuilderName(job?.builderName||job?.builder)}));
@@ -865,6 +875,9 @@ let settings={...DEFAULT_SETTINGS,...safeObject('neuSettingsV3',{}),logo:REFEREN
 settings.logo=REFERENCE_LOGO;
 DB.set('neuSettingsV3',settings);
 let editingMaterialId=null;
+let editingPackageId=null;
+let selectedScopeItemId=null;
+let selectedScopeCategory='Favorites';
 let editingProposalId=null;
 let editingJobId=null;
 let activeJobId=null;
@@ -876,6 +889,7 @@ const expandedJobs=new Set();
 function currentAppState(){
   return {
     materials:Array.isArray(materials)?materials:[],
+    packages:Array.isArray(packages)?packages:[],
     customers:Array.isArray(customers)?customers:[],
     jobs:Array.isArray(jobs)?jobs:[],
     proposals:Array.isArray(proposals)?proposals:[],
@@ -934,11 +948,14 @@ function applyCloudState(data){
   cloudApplying=true;
   try{
     materials=Array.isArray(data.materials)?data.materials:materials;
+    packages=Array.isArray(data.packages)?data.packages:packages;
+    migratePriceBook();
     customers=Array.isArray(data.customers)?data.customers:customers;
     jobs=(Array.isArray(data.jobs)?data.jobs:jobs).map(job=>({...job,name:cleanJobName(job?.name),builderName:cleanBuilderName(job?.builderName||job?.builder)}));
     proposals=Array.isArray(data.proposals)?data.proposals:proposals;
     settings={...DEFAULT_SETTINGS,...(data.settings&&typeof data.settings==='object'?data.settings:{}),logo:REFERENCE_LOGO};
     Store.setItem('neuMaterialsV3',JSON.stringify(materials));
+    Store.setItem('nesPackagesV1',JSON.stringify(packages));
     Store.setItem('neuCustomersV3',JSON.stringify(customers));
     Store.setItem('nesJobsV4',JSON.stringify(jobs));
     Store.setItem('neuProposalsV3',JSON.stringify(proposals));
@@ -1038,7 +1055,7 @@ function showView(id,updateUrl=true){
   document.querySelectorAll('.view').forEach(view=>view.classList.remove('active'));
   target.classList.add('active');
   document.querySelectorAll('.nav [data-view]').forEach(link=>link.classList.toggle('active',link.dataset.view===id));
-  const titles={dashboardView:'Dashboard',proposalView:'New Proposal',jobsView:'Builder & Job Folders',allView:'All Proposals',materialsView:'Materials & Costs',settingsView:'Settings'};
+  const titles={dashboardView:'Dashboard',proposalView:'New Proposal',jobsView:'Builder & Job Folders',allView:'All Proposals',materialsView:'Price Book',settingsView:'Settings'};
   $('pageTitle').textContent=titles[id]||'NES PROPOSALS';
   if(updateUrl){
     const route=VIEW_ROUTES[id]||'#dashboard';
@@ -1547,249 +1564,95 @@ function deleteJob(id){
   updateCounts();
 }
 
+function pluralizeScopeDescription(text,qty,material){
+  const q=Math.max(1,Number(qty)||1);
+  let out=String(text||'').trim();
+  out=out.replace(/\b1\b/,String(q));
+  if(q>1){
+    const singular=String(material?.singular||'').trim();
+    const plural=String(material?.plural||'').trim();
+    if(singular&&plural){
+      const rx=new RegExp(`\\b${singular.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}\\b`,'i');
+      out=out.replace(rx,plural);
+    }
+    out=out.replace(/\b1 switch\b/i,`${q} switches`).replace(/\b1 circuit\b/i,`${q} circuits`).replace(/\b1 receptacle\b/i,`${q} receptacles`);
+  }
+  return out;
+}
 function openMaterialModal(id=null){
   editingMaterialId=id;
   const material=materials.find(m=>m.id===id);
-  $('materialModalTitle').textContent=material?'Edit Fixture / Device':'Add Fixture / Device';
+  $('materialModalTitle').textContent=material?'Edit Scope Item':'New Scope Item';
   $('materialName').value=material?.name||'';
-  $('materialCategory').value=material?.category||'';
+  $('materialCategory').value=material?.category||$('proposalRoom')?.value||'';
   $('materialCost').value=material?.cost??'';
-  $('materialExtraCost').value=material?.extraCost??material?.cost??'';
-  $('materialControlCost').value=material?.controlCost??0;
-  $('materialSizes').value=Array.isArray(material?.sizes)?material.sizes.join(', '):(material?.sizes||'');
   $('materialSingular').value=material?.singular||'';
   $('materialPlural').value=material?.plural||'';
+  $('materialFavorite').checked=!!material?.favorite;
   $('materialActive').checked=material?.active!==false;
   $('materialModal').classList.add('open');
 }
-
 function saveMaterial(){
   const name=$('materialName').value.trim();
-  if(!name){alert('Enter a name.');return}
-  const singular=$('materialSingular').value.trim()||name;
-  const material={
-    id:editingMaterialId||uid(),
-    name,
-    category:$('materialCategory').value.trim()||'Custom',
-    cost:Number($('materialCost').value)||0,
-    extraCost:Number($('materialExtraCost').value)||0,
-    controlCost:Number($('materialControlCost').value)||0,
-    sizes:$('materialSizes').value.split(',').map(v=>v.trim()).filter(Boolean),
-    singular,
-    plural:$('materialPlural').value.trim()||`${singular}s`,
-    active:$('materialActive').checked,
-    lastUsed:materials.find(m=>m.id===editingMaterialId)?.lastUsed||0
-  };
+  if(!name){alert('Enter the customer-facing scope description.');return}
+  const old=materials.find(m=>m.id===editingMaterialId);
+  const material={id:editingMaterialId||uid(),name,category:$('materialCategory').value.trim()||'Custom',cost:Number($('materialCost').value)||0,singular:$('materialSingular').value.trim(),plural:$('materialPlural').value.trim(),favorite:$('materialFavorite').checked,active:$('materialActive').checked,lastUsed:old?.lastUsed||0};
   const index=materials.findIndex(m=>m.id===material.id);
   if(index>=0)materials[index]=material;else materials.unshift(material);
-  DB.set('neuMaterialsV3',materials);
-  closeModal('materialModal');
-  renderMaterials();
-  updateCounts();
+  DB.set('neuMaterialsV3',materials);scheduleCloudSave();closeModal('materialModal');renderMaterials();renderScopePicker();updateCounts();
 }
-
-function showMaterialsPanel(panel){
-  const pricing=panel==='pricing';
-  $('materialCatalogPanel')?.classList.toggle('active',!pricing);
-  $('materialPricingPanel')?.classList.toggle('active',pricing);
-  $('materialCatalogTab')?.classList.toggle('active',!pricing);
-  $('materialPricingTab')?.classList.toggle('active',pricing);
-  if(pricing){renderPricingRules();updatePricingTest()}
-}
-
-function automaticMaterialPrice(material,devices=1,controls=1){
-  const m=normalizeMaterial({...material});
-  const deviceCount=Math.max(1,Number(devices)||1);
-  const controlCount=Math.max(0,Number(controls)||0);
-  return (Number(m.cost)||0)+Math.max(0,deviceCount-1)*(Number(m.extraCost)||0)+Math.max(0,controlCount-1)*(Number(m.controlCost)||0);
-}
-
-function renderPricingRules(){
-  const select=$('pricingTestMaterial');
-  if(select){
-    const current=select.value;
-    select.innerHTML=materials.filter(m=>m.active!==false).sort((a,b)=>a.name.localeCompare(b.name)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
-    if(materials.some(m=>m.id===current))select.value=current;
-  }
-  const cards=$('pricingRuleCards');
-  if(!cards)return;
-  const sorted=[...materials].sort((a,b)=>(a.category||'').localeCompare(b.category||'')||a.name.localeCompare(b.name));
-  cards.innerHTML=sorted.length?sorted.map(m=>{
-    const normalized=normalizeMaterial({...m});
-    return `<div class="pricing-rule-card">
-      <div class="pricing-rule-head"><div><h4>${escapeHtml(normalized.name)}</h4><small>${escapeHtml(normalized.category||'Custom')} · ${normalized.active===false?'Hidden':'Available in builder'}</small></div><button class="icon-btn" title="Edit pricing rule" onclick="openMaterialModal('${normalized.id}')">✎</button></div>
-      <div class="rule-values">
-        <div class="rule-value"><span>Starting</span><strong>${money(normalized.cost)}</strong></div>
-        <div class="rule-value"><span>Extra device</span><strong>+${money(normalized.extraCost)}</strong></div>
-        <div class="rule-value"><span>Extra switch</span><strong>+${money(normalized.controlCost)}</strong></div>
-      </div>
-      <div class="rule-formula">Example: 3 devices and 2 switches = ${money(automaticMaterialPrice(normalized,3,2))}</div>
-    </div>`;
-  }).join(''):'<div class="empty">No pricing rules yet.</div>';
-}
-
-function updatePricingTest(){
-  const id=$('pricingTestMaterial')?.value;
-  const material=materials.find(m=>m.id===id);
-  const devices=Math.max(1,Number($('pricingTestDevices')?.value)||1);
-  const controls=Math.max(0,Number($('pricingTestControls')?.value)||0);
-  if($('pricingTestTotal'))$('pricingTestTotal').textContent=money(material?automaticMaterialPrice(material,devices,controls):0);
-}
-
-function renderMaterials(){
-  const query=($('materialSearch')?.value||'').toLowerCase();
-  const category=$('materialCategoryFilter')?.value||'';
-  const rows=materials.filter(m=>{
-    const matches=`${m.name} ${m.category}`.toLowerCase().includes(query);
-    return matches&&(!category||m.category===category);
-  }).sort((a,b)=>a.name.localeCompare(b.name));
-
-  refreshCategoryFilter();
-  $('materialsTable').innerHTML=rows.length?rows.map(m=>`
-    <tr>
-      <td data-label="Material"><strong>${escapeHtml(m.name)}</strong></td>
-      <td data-label="Category">${escapeHtml(m.category||'Uncategorized')}</td>
-      <td data-label="Starting Price"><strong>${money(m.cost)}</strong></td>
-      <td data-label="Visible">${m.active===false?'Hidden':'Yes'}</td>
-      <td data-label="Actions">
-        <div class="compact-actions">
-          <button class="icon-btn" title="Edit material" aria-label="Edit material" onclick="openMaterialModal('${m.id}')">✎</button>
-          <button class="icon-btn danger" title="Delete material" aria-label="Delete material" onclick="deleteMaterial('${m.id}')">⌫</button>
-        </div>
-      </td>
-    </tr>`).join(''):'<tr><td colspan="5" class="empty">No fixtures or devices found.</td></tr>';
-  $('materialCount').textContent=materials.length;
-  if($('materialPricingPanel')?.classList.contains('active')){renderPricingRules();updatePricingTest()}
-}
-
 function deleteMaterial(id){
-  if(!confirm('Delete this material? Existing saved proposals will keep their current line items.'))return;
-  materials=materials.filter(m=>m.id!==id);
-  DB.set('neuMaterialsV3',materials);
-  renderMaterials();
-  updateCounts();
+  if(!confirm('Delete this scope item? Existing proposals will not change.'))return;
+  materials=materials.filter(m=>m.id!==id);packages=packages.map(p=>({...p,itemIds:(p.itemIds||[]).filter(x=>x!==id)}));
+  DB.set('neuMaterialsV3',materials);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderMaterials();
 }
-
+function showPriceBookPanel(panel){
+  const isPackages=panel==='packages';
+  $('scopeItemsPanel').classList.toggle('active',!isPackages);$('packagesPanel').classList.toggle('active',isPackages);
+  $('scopeItemsTab').classList.toggle('active',!isPackages);$('packagesTab').classList.toggle('active',isPackages);
+  if(isPackages)renderPackages();
+}
 function refreshCategoryFilter(){
-  const select=$('materialCategoryFilter');
-  if(!select)return;
-  const current=select.value;
-  const categories=[...new Set(materials.map(m=>m.category||'Uncategorized'))].sort();
-  select.innerHTML='<option value="">All Categories</option>'+categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  const select=$('materialCategoryFilter');if(!select)return;const current=select.value;
+  const categories=[...new Set(materials.map(m=>m.category||'Custom'))].sort();
+  select.innerHTML='<option value="">All Rooms / Categories</option>'+categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
   if(categories.includes(current))select.value=current;
 }
-
-
-
-const ASSEMBLY_TEMPLATES=[
-  {id:'switch-device',name:'Lighting, Fans & Controls',categories:['Lighting','Fans'],controls:true,devices:true},
-  {id:'receptacles',name:'Receptacles & Devices',categories:['Receptacles'],controls:false,devices:true},
-  {id:'circuits',name:'Dedicated Circuits',categories:['Circuits'],controls:false,devices:true},
-  {id:'equipment',name:'Equipment & HVAC',categories:['Equipment','HVAC'],controls:false,devices:true},
-  {id:'safety-low-voltage',name:'Safety / Low Voltage',categories:['Safety','Low Voltage'],controls:false,devices:true},
-  {id:'service',name:'Service / Panels',categories:['Service'],controls:false,devices:true}
-];
-let activeAssemblyPrice=0;
-
-function normalizeMaterial(material){
-  material.extraCost=Number(material.extraCost ?? material.cost ?? 0);
-  material.controlCost=Number(material.controlCost ?? 0);
-  material.sizes=Array.isArray(material.sizes)?material.sizes:String(material.sizes||'').split(',').map(v=>v.trim()).filter(Boolean);
-  material.singular=material.singular||material.name;
-  material.plural=material.plural||`${material.singular}s`;
-  material.active=material.active!==false;
-  return material;
+function renderMaterials(){
+  const query=($('materialSearch')?.value||'').toLowerCase();const category=$('materialCategoryFilter')?.value||'';
+  refreshCategoryFilter();
+  const rows=materials.filter(m=>`${m.name} ${m.category}`.toLowerCase().includes(query)&&(!category||m.category===category)).sort((a,b)=>(Number(b.favorite)-Number(a.favorite))||a.category.localeCompare(b.category)||a.name.localeCompare(b.name));
+  $('materialsTable').innerHTML=rows.length?rows.map(m=>`<tr><td data-label="Scope Item"><strong>${escapeHtml(m.name)}</strong>${m.active===false?'<small style="display:block;color:var(--muted)">Hidden</small>':''}</td><td data-label="Room / Category">${escapeHtml(m.category||'Custom')}</td><td data-label="Default Price"><strong>${money(m.cost)}</strong></td><td data-label="Favorite">${m.favorite?'<span class="scope-favorite">★</span>':'—'}</td><td data-label="Actions"><div class="compact-actions"><button class="icon-btn" title="Edit" onclick="openMaterialModal('${m.id}')">✎</button><button class="icon-btn danger" title="Delete" onclick="deleteMaterial('${m.id}')">⌫</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No scope items found.</td></tr>';
+  $('materialCount').textContent=materials.length;renderPackages();
 }
-function ensureAssemblyCatalog(){
-  materials=materials.map(normalizeMaterial);
-  const defaults=defaultMaterials();
-  const names=new Set(materials.map(m=>m.name.toLowerCase()));
-  defaults.forEach(item=>{if(!names.has(item.name.toLowerCase()))materials.push(item)});
-  DB.set('neuMaterialsV3',materials);
+function openScopePickerFromRoom(){openScopePicker($('proposalRoom')?.value.trim()||'')}
+function openScopePicker(room=''){
+  if(room)$('proposalRoom').value=room;selectedScopeItemId=null;selectedScopeCategory=room||'Favorites';$('scopePickerSearch').value='';$('scopeSelectedEditor').style.display='none';renderScopePicker();$('scopePickerModal').classList.add('open');
 }
-function openAssemblyBuilder(room=''){
-  ensureAssemblyCatalog();
-  $('assemblyTemplate').innerHTML=ASSEMBLY_TEMPLATES.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
-  $('assemblyTemplate').value='switch-device';
-  $('assemblyRoom').value=room||'';
-  $('assemblyControls').value=1;
-  $('assemblyDevices').value=1;
-  $('assemblyOption').value='';
-  $('assemblyAmperage').value='20A';
-  $('assemblyCustomAmperage').value='';
-  $('assemblyOverride').value='';
-  renderAssemblyBuilder();
-  $('assemblyBuilderModal').classList.add('open');
+function scopeCategories(){return [...new Set(materials.filter(m=>m.active!==false).map(m=>m.category||'Custom'))].sort()}
+function renderScopePicker(){
+  const room=$('proposalRoom')?.value.trim()||'';const query=($('scopePickerSearch')?.value||'').toLowerCase();const cats=scopeCategories();
+  const buttons=['Favorites',...(room&&cats.includes(room)?[room]:[]),...cats.filter(c=>c!==room)];
+  $('scopePickerCategories').innerHTML=[...new Set(buttons)].map(c=>`<button class="scope-category ${selectedScopeCategory===c?'active':''}" onclick="selectedScopeCategory='${escapeHtml(c).replace(/'/g,"\\'")}';renderScopePicker()">${c==='Favorites'?'★ ':''}${escapeHtml(c)}</button>`).join('');
+  let rows=materials.filter(m=>m.active!==false&&`${m.name} ${m.category}`.toLowerCase().includes(query));
+  if(selectedScopeCategory==='Favorites')rows=rows.filter(m=>m.favorite);else rows=rows.filter(m=>m.category===selectedScopeCategory);
+  rows.sort((a,b)=>(Number(b.favorite)-Number(a.favorite))||(b.lastUsed||0)-(a.lastUsed||0)||a.name.localeCompare(b.name));
+  $('scopePickerResults').innerHTML=rows.length?rows.map(m=>`<button class="scope-item-card" onclick="selectScopeItem('${m.id}')"><div><h4>${m.favorite?'<span class="scope-favorite">★</span> ':''}${escapeHtml(m.name)}</h4><p>${escapeHtml(m.category||'Custom')}</p></div><div class="scope-price">${money(m.cost)}</div></button>`).join(''):'<div class="empty">No scope items here yet.</div>';
 }
-function openAssemblyBuilderFromRoom(){openAssemblyBuilder($('proposalRoom')?.value.trim()||'')}
-function addCustomItemForRoom(){
-  const room=$('proposalRoom')?.value.trim()||'';
-  addProposalRow({description:room?`${room}: `:'',qty:1,cost:0});
-  const rows=[...document.querySelectorAll('#proposalItems tr')];
-  const row=rows[rows.length-1];
-  const input=row?.querySelector('.item-description');
-  if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}
+function selectScopeItem(id){
+  const m=materials.find(x=>x.id===id);if(!m)return;selectedScopeItemId=id;$('scopeSelectedEditor').style.display='block';$('scopeSelectedName').textContent=m.name;$('scopeSelectedCategory').textContent=m.category||'Custom';$('scopeSelectedQty').value=1;$('scopeSelectedPrice').value=Number(m.cost)||0;$('scopeSelectedDescription').value=m.name;updateSelectedScope();
 }
-function activeAssemblyTemplate(){return ASSEMBLY_TEMPLATES.find(t=>t.id===$('assemblyTemplate').value)||ASSEMBLY_TEMPLATES[0]}
-function assemblyCandidates(){
-  const template=activeAssemblyTemplate();
-  return materials.filter(m=>normalizeMaterial(m).active&&template.categories.includes(m.category)).sort((a,b)=>a.name.localeCompare(b.name));
-}
-function renderAssemblyBuilder(){
-  const previous=$('assemblyDevice')?.value;
-  const candidates=assemblyCandidates();
-  $('assemblyDevice').innerHTML=candidates.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
-  if(candidates.some(m=>m.id===previous))$('assemblyDevice').value=previous;
-  const material=candidates.find(m=>m.id===$('assemblyDevice').value)||candidates[0];
-  const sizes=material?.sizes||[];
-  const oldSize=$('assemblySize').value;
-  $('assemblySize').innerHTML='<option value="">Default</option>'+sizes.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-  if(sizes.includes(oldSize))$('assemblySize').value=oldSize;
-  const template=activeAssemblyTemplate();
-  $('assemblyControls').closest('label').style.display=template.controls?'flex':'none';
-  const usesAmperage=['circuits','equipment'].includes(template.id);
-  $('assemblyAmperageLabel').style.display=usesAmperage?'flex':'none';
-  const customAmp=$('assemblyAmperage').value==='custom';
-  $('assemblyCustomAmperageLabel').style.display=usesAmperage&&customAmp?'flex':'none';
-  const amperage=usesAmperage?(customAmp?$('assemblyCustomAmperage').value.trim():$('assemblyAmperage').value):'';
-  const controls=Math.max(0,Number($('assemblyControls').value)||0);
-  const devices=Math.max(1,Number($('assemblyDevices').value)||1);
-  const room=$('assemblyRoom').value.trim();
-  const option=$('assemblyOption').value;
-  const size=$('assemblySize').value;
-  let description='';
-  if(material){
-    const noun=devices===1?(material.singular||material.name):(material.plural||material.name);
-    const sized=[size, noun].filter(Boolean).join(' ');
-    if(template.id==='switch-device')description=`Wire ${controls} ${controls===1?'switch':'switches'} for ${devices} ${sized}`;
-    else if(template.id==='receptacles')description=`Wire ${devices} ${sized}`;
-    else if(template.id==='circuits'){
-      const circuitNoun=devices===1?'circuit':'circuits';
-      description=`Wire ${devices}${amperage?' '+amperage:''} ${circuitNoun} for ${sized}`;
-    }
-    else if(template.id==='equipment')description=`Wire ${devices}${amperage?' '+amperage:''} ${devices===1?'circuit':'circuits'} for ${sized}`;
-    else if(template.id==='safety-low-voltage')description=`Provide ${devices} ${sized}`;
-    else description=`Provide ${devices===1?sized:`${devices} ${sized}`}`;
-    if(option)description+=` with ${option}`;
-    if(room)description+=` in ${room}`;
-    const calculated=automaticMaterialPrice(material,devices,controls);
-    activeAssemblyPrice=$('assemblyOverride').value!==''?Number($('assemblyOverride').value)||0:calculated;
-  }else{activeAssemblyPrice=0;description='Add fixtures or devices in Materials first.'}
-  $('assemblyDescription').value=description;
-  syncAssemblyPreviewText();
-  $('assemblyPreviewPrice').textContent=money(activeAssemblyPrice);
-}
-function syncAssemblyPreviewText(){$('assemblyPreviewText').textContent=$('assemblyDescription').value.trim()||'Line item preview'}
-function stepAssemblyQty(id,delta){const input=$(id);input.value=Math.max(Number(input.min||0),Number(input.value||0)+delta);renderAssemblyBuilder()}
-function addAssemblyToProposal(){
-  const description=$('assemblyDescription').value.trim();
-  if(!description){alert('Enter a line-item description.');return}
-  const materialId=$('assemblyDevice').value||'';
-  addProposalRow({materialId,description,qty:1,cost:activeAssemblyPrice});
-  if($('proposalRoom'))$('proposalRoom').value=$('assemblyRoom').value.trim();
-  closeModal('assemblyBuilderModal');
-}
-
+function updateSelectedScope(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const q=Math.max(1,Number($('scopeSelectedQty').value)||1);$('scopeSelectedDescription').value=pluralizeScopeDescription(m.name,q,m);$('scopeSelectedPrice').value=((Number(m.cost)||0)*q).toFixed(2)}
+function stepScopeQty(delta){$('scopeSelectedQty').value=Math.max(1,(Number($('scopeSelectedQty').value)||1)+delta);updateSelectedScope()}
+function addSelectedScopeToProposal(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const description=$('scopeSelectedDescription').value.trim();const price=Number($('scopeSelectedPrice').value)||0;if(!description){alert('Enter a description.');return}m.lastUsed=Date.now();DB.set('neuMaterialsV3',materials);addProposalRow({materialId:m.id,description,qty:1,cost:price});closeModal('scopePickerModal');scheduleCloudSave()}
+function addCustomItemForRoom(){const room=$('proposalRoom')?.value.trim()||'';addProposalRow({description:room?`${room}: `:'',qty:1,cost:0});const rows=[...document.querySelectorAll('#proposalItems tr')];const input=rows.at(-1)?.querySelector('.item-description');if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}}
+function openPackageModal(id=null){editingPackageId=id;const pkg=packages.find(p=>p.id===id);$('packageModalTitle').textContent=pkg?'Edit Package':'New Package';$('packageName').value=pkg?.name||'';$('packageCategory').value=pkg?.category||$('proposalRoom')?.value||'';const selected=new Set(pkg?.itemIds||[]);$('packageItemChecklist').innerHTML=materials.filter(m=>m.active!==false).sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)).map(m=>`<label class="package-check"><input type="checkbox" value="${m.id}" ${selected.has(m.id)?'checked':''}><span><strong>${escapeHtml(m.name)}</strong><small style="display:block;color:var(--muted)">${escapeHtml(m.category)} · ${money(m.cost)}</small></span></label>`).join('');$('packageModal').classList.add('open')}
+function savePackage(){const name=$('packageName').value.trim();if(!name){alert('Enter a package name.');return}const itemIds=[...document.querySelectorAll('#packageItemChecklist input:checked')].map(i=>i.value);if(!itemIds.length){alert('Choose at least one scope item.');return}const old=packages.find(p=>p.id===editingPackageId);const pkg={id:editingPackageId||uid(),name,category:$('packageCategory').value.trim()||'Custom',itemIds,lastUsed:old?.lastUsed||0};const i=packages.findIndex(p=>p.id===pkg.id);if(i>=0)packages[i]=pkg;else packages.unshift(pkg);DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packageModal');renderPackages()}
+function deletePackage(id){if(!confirm('Delete this package?'))return;packages=packages.filter(p=>p.id!==id);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderPackages()}
+function renderPackages(){const el=$('packagesList');if(!el)return;el.innerHTML=packages.length?packages.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);const total=items.reduce((sum,m)=>sum+(Number(m.cost)||0),0);return `<div class="package-card"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category||'Custom')} · ${items.length} items · ${money(total)}</small></div><div class="compact-actions"><button class="icon-btn" onclick="openPackageModal('${p.id}')">✎</button><button class="icon-btn danger" onclick="deletePackage('${p.id}')">⌫</button></div></div><ul>${items.map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></div>`}).join(''):'<div class="empty">No packages yet. Create a package for the room combinations you use repeatedly.</div>'}
+function openPackagePickerFromRoom(){const room=$('proposalRoom')?.value.trim()||'';$('packagePickerRoomText').textContent=room?`Showing packages for ${room}.`:'Choose a room first, or select any package below.';let rows=packages.filter(p=>!room||p.category===room);if(!rows.length)rows=packages;$('packagePickerList').innerHTML=rows.length?rows.map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);return `<button class="package-card" style="text-align:left;width:100%" onclick="addPackageToProposal('${p.id}')"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category)} · ${items.length} items</small></div><strong>${money(items.reduce((s,m)=>s+(Number(m.cost)||0),0))}</strong></div><ul>${items.slice(0,5).map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></button>`}).join(''):'<div class="empty">No packages have been created yet.</div>';$('packagePickerModal').classList.add('open')}
+function addPackageToProposal(id){const pkg=packages.find(p=>p.id===id);if(!pkg)return;(pkg.itemIds||[]).map(itemId=>materials.find(m=>m.id===itemId)).filter(Boolean).forEach(m=>addProposalRow({materialId:m.id,description:m.name,qty:1,cost:Number(m.cost)||0}));pkg.lastUsed=Date.now();DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packagePickerModal')}
+function openAssemblyBuilderFromRoom(){openScopePickerFromRoom()}
 function loadSettings(){
   $('settingCompany').value=settings.company||'';
   $('settingPhone').value=settings.phone||'';
@@ -1926,7 +1789,7 @@ function printProposal(){
 }
 
 function exportData(){
-  const data={version:5,exportedAt:new Date().toISOString(),materials,customers,jobs,proposals,settings};
+  const data={version:6,exportedAt:new Date().toISOString(),materials,packages,customers,jobs,proposals,settings};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1945,11 +1808,14 @@ function importData(event){
       const data=JSON.parse(reader.result);
       if(!confirm('Importing will replace your current app data. Continue?'))return;
       materials=Array.isArray(data.materials)?data.materials:materials;
+    packages=Array.isArray(data.packages)?data.packages:packages;
+    migratePriceBook();
       customers=Array.isArray(data.customers)?data.customers:customers;
       jobs=(Array.isArray(data.jobs)?data.jobs:jobs).map(job=>({...job,name:cleanJobName(job?.name),builderName:cleanBuilderName(job?.builderName||job?.builder)}));
       proposals=Array.isArray(data.proposals)?data.proposals:proposals;
       settings=data.settings||settings;
       DB.set('neuMaterialsV3',materials);
+      DB.set('nesPackagesV1',packages);
       DB.set('neuCustomersV3',customers);
       DB.set('nesJobsV4',jobs);
       DB.set('neuProposalsV3',proposals);
@@ -1966,6 +1832,7 @@ function importData(event){
 async function resetAllData(){
   if(!confirm('This will delete all builders, jobs, proposals, materials, and settings for everyone using this website. Continue?'))return;
   materials=defaultMaterials();
+  packages=[];
   customers=[];
   jobs=[];
   proposals=[];
@@ -1973,6 +1840,7 @@ async function resetAllData(){
   cloudApplying=true;
   try{
     Store.setItem('neuMaterialsV3',JSON.stringify(materials));
+    Store.setItem('nesPackagesV1',JSON.stringify(packages));
     Store.setItem('neuCustomersV3',JSON.stringify(customers));
     Store.setItem('nesJobsV4',JSON.stringify(jobs));
     Store.setItem('neuProposalsV3',JSON.stringify(proposals));
@@ -2030,7 +1898,6 @@ function showStartupError(error){
 
 function startApp(){
   hydrateIcons();
-  ensureAssemblyCatalog();
   placeLogo('brandLogo');
   ensureJobsFromProposals();
   loadSettings();
