@@ -369,6 +369,10 @@ td input,td select{padding:8px 9px}
 .qty-control button{height:40px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font-size:20px;font-weight:800}
 .qty-control input{text-align:center;font-weight:800}
 .library-note{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;border-radius:10px;padding:10px 12px;font-size:12px;margin-bottom:14px}
+.room-first-bar{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:12px;align-items:end;padding:14px;border:1px solid var(--border);border-radius:14px;background:#f8fafc;margin-bottom:16px}
+.room-first-bar label{margin:0}.room-first-bar .btn{min-height:44px}
+.builder-section-title{grid-column:1/-1;font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-top:4px;border-top:1px solid var(--border);margin-top:2px}
+@media(max-width:760px){.room-first-bar{grid-template-columns:1fr}.room-first-bar .btn{width:100%}}
 .material-extra{border-top:1px solid var(--border);padding-top:14px;margin-top:14px}
 @media(max-width:760px){.builder-grid{grid-template-columns:1fr}.builder-modal-box{max-height:96vh}.qty-control{grid-template-columns:44px 1fr 44px}}
 </style>
@@ -423,7 +427,7 @@ td input,td select{padding:8px 9px}
 
 <section id="proposalView" class="view">
   <div class="hero">
-    <div><h2 id="proposalHeading">Create Proposal</h2><p>Attach the proposal to a job, then add saved materials or custom description lines.</p></div>
+    <div><h2 id="proposalHeading">Create Proposal</h2><p>Attach the proposal to a job, choose a room or section, and build the scope one line at a time.</p></div>
     <div class="hero-stat"><span>Proposal Total</span><strong id="heroTotal">$0.00</strong></div>
   </div>
 
@@ -450,11 +454,14 @@ td input,td select{padding:8px 9px}
 
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Line items</span><h3>Proposal Materials</h3></div>
-      <div class="actions no-print">
-        <button class="btn btn-primary" onclick="openAssemblyBuilder()"><span data-icon="plus"></span>Build Item</button>
-        <button class="btn btn-outline" onclick="addProposalRow()"><span data-icon="plus"></span>Custom Item</button>
-      </div>
+      <div><span class="kicker">Line items</span><h3>Proposal Materials</h3><p>Choose the room first, then build or add the line item.</p></div>
+    </div>
+    <div class="room-first-bar no-print">
+      <label>Room / Section
+        <input id="proposalRoom" list="roomOptions" placeholder="Kitchen, Bathroom, Bedroom...">
+      </label>
+      <button class="btn btn-primary" onclick="openAssemblyBuilderFromRoom()"><span data-icon="plus"></span>Build Item</button>
+      <button class="btn btn-outline" onclick="addCustomItemForRoom()"><span data-icon="plus"></span>Custom Line</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -670,17 +677,21 @@ td input,td select{padding:8px 9px}
       <div><span class="kicker">Fast line-item generator</span><h3>Build Item</h3></div>
       <button class="icon-btn" onclick="closeModal('assemblyBuilderModal')" aria-label="Close">✕</button>
     </div>
-    <div class="library-note">Choose a template, quantities, fixture or device, and room. You only see the finished line item and final price.</div>
+    <div class="library-note">Start with the room, then choose the electrical system and item. The proposal only shows the finished description and final line-item price.</div>
     <div class="builder-grid">
-      <label>Template<select id="assemblyTemplate" onchange="renderAssemblyBuilder()"></select></label>
-      <label>Room / Area<input id="assemblyRoom" list="roomOptions" placeholder="Kitchen, Bedroom, Bathroom..." oninput="renderAssemblyBuilder()"></label>
-      <datalist id="roomOptions"><option>Kitchen</option><option>Bathroom</option><option>Bedroom</option><option>Master Bedroom</option><option>Living Area</option><option>Dining Area</option><option>Hall</option><option>Closet</option><option>Office</option><option>Garage</option><option>Utility Room</option><option>Outside</option></datalist>
+      <label class="span-2">Room / Section<input id="assemblyRoom" list="roomOptions" placeholder="Kitchen, Bedroom, Bathroom..." oninput="renderAssemblyBuilder()"></label>
+      <datalist id="roomOptions"><option>Kitchen</option><option>Bathroom</option><option>Bedroom</option><option>Master Bedroom</option><option>Living Area</option><option>Dining Area</option><option>Hall</option><option>Closet</option><option>Office</option><option>Garage</option><option>Utility Room</option><option>Laundry</option><option>Porch</option><option>Outside</option><option>Service</option></datalist>
+      <div class="builder-section-title">Electrical system</div>
+      <label>System<select id="assemblyTemplate" onchange="renderAssemblyBuilder()"></select></label>
       <label>Fixture / Device<select id="assemblyDevice" onchange="renderAssemblyBuilder()"></select></label>
       <label>Size / Style<select id="assemblySize" onchange="renderAssemblyBuilder()"></select></label>
+      <label id="assemblyAmperageLabel">Circuit Amperage<select id="assemblyAmperage" onchange="renderAssemblyBuilder()"><option>15A</option><option>20A</option><option>25A</option><option>30A</option><option>40A</option><option>50A</option><option>60A</option><option>70A</option><option>80A</option><option>90A</option><option>100A</option><option>125A</option><option>150A</option><option>200A</option><option value="custom">Custom</option></select></label>
+      <label id="assemblyCustomAmperageLabel" style="display:none">Custom Amperage<input id="assemblyCustomAmperage" placeholder="Example: 35A" oninput="renderAssemblyBuilder()"></label>
+      <div class="builder-section-title">Quantities and options</div>
       <label>Number of Switches / Controls<div class="qty-control"><button type="button" onclick="stepAssemblyQty('assemblyControls',-1)">−</button><input id="assemblyControls" type="number" min="0" value="1" oninput="renderAssemblyBuilder()"><button type="button" onclick="stepAssemblyQty('assemblyControls',1)">+</button></div></label>
-      <label>Number of Fixtures / Devices<div class="qty-control"><button type="button" onclick="stepAssemblyQty('assemblyDevices',-1)">−</button><input id="assemblyDevices" type="number" min="1" value="1" oninput="renderAssemblyBuilder()"><button type="button" onclick="stepAssemblyQty('assemblyDevices',1)">+</button></div></label>
+      <label>Number of Fixtures / Devices / Circuits<div class="qty-control"><button type="button" onclick="stepAssemblyQty('assemblyDevices',-1)">−</button><input id="assemblyDevices" type="number" min="1" value="1" oninput="renderAssemblyBuilder()"><button type="button" onclick="stepAssemblyQty('assemblyDevices',1)">+</button></div></label>
       <label>Protection / Option<select id="assemblyOption" onchange="renderAssemblyBuilder()"><option value="">None</option><option value="GFI protection">GFI protection</option><option value="AFC protection">AFC protection</option><option value="weatherproof">Weatherproof</option><option value="3-way switching">3-way switching</option><option value="dimmer control">Dimmer control</option><option value="owner provided">Owner provided</option></select></label>
-      <label>Manual Price Override<input id="assemblyOverride" type="number" min="0" step="0.01" placeholder="Optional" oninput="renderAssemblyBuilder()"></label>
+      <label>Final Line-Item Price<input id="assemblyOverride" type="number" min="0" step="0.01" placeholder="Enter final price" oninput="renderAssemblyBuilder()"></label>
       <label class="span-2">Description (editable)<textarea id="assemblyDescription" style="min-height:82px" oninput="syncAssemblyPreviewText()"></textarea></label>
       <div class="builder-preview span-2"><span class="kicker">Final line item</span><strong id="assemblyPreviewText"></strong><div class="builder-price" id="assemblyPreviewPrice">$0.00</div></div>
     </div>
@@ -1585,10 +1596,10 @@ function refreshCategoryFilter(){
 
 
 const ASSEMBLY_TEMPLATES=[
-  {id:'switch-device',name:'Switches for Fixtures / Fans',categories:['Lighting','Fans'],controls:true,devices:true},
-  {id:'receptacles',name:'Receptacles',categories:['Receptacles'],controls:false,devices:true},
-  {id:'circuits',name:'Circuits',categories:['Circuits'],controls:false,devices:true},
-  {id:'equipment',name:'Equipment Connections',categories:['Equipment','HVAC'],controls:false,devices:true},
+  {id:'switch-device',name:'Lighting, Fans & Controls',categories:['Lighting','Fans'],controls:true,devices:true},
+  {id:'receptacles',name:'Receptacles & Devices',categories:['Receptacles'],controls:false,devices:true},
+  {id:'circuits',name:'Dedicated Circuits',categories:['Circuits'],controls:false,devices:true},
+  {id:'equipment',name:'Equipment & HVAC',categories:['Equipment','HVAC'],controls:false,devices:true},
   {id:'safety-low-voltage',name:'Safety / Low Voltage',categories:['Safety','Low Voltage'],controls:false,devices:true},
   {id:'service',name:'Service / Panels',categories:['Service'],controls:false,devices:true}
 ];
@@ -1610,17 +1621,28 @@ function ensureAssemblyCatalog(){
   defaults.forEach(item=>{if(!names.has(item.name.toLowerCase()))materials.push(item)});
   DB.set('neuMaterialsV3',materials);
 }
-function openAssemblyBuilder(){
+function openAssemblyBuilder(room=''){
   ensureAssemblyCatalog();
   $('assemblyTemplate').innerHTML=ASSEMBLY_TEMPLATES.map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
   $('assemblyTemplate').value='switch-device';
-  $('assemblyRoom').value='';
+  $('assemblyRoom').value=room||'';
   $('assemblyControls').value=1;
   $('assemblyDevices').value=1;
   $('assemblyOption').value='';
+  $('assemblyAmperage').value='20A';
+  $('assemblyCustomAmperage').value='';
   $('assemblyOverride').value='';
   renderAssemblyBuilder();
   $('assemblyBuilderModal').classList.add('open');
+}
+function openAssemblyBuilderFromRoom(){openAssemblyBuilder($('proposalRoom')?.value.trim()||'')}
+function addCustomItemForRoom(){
+  const room=$('proposalRoom')?.value.trim()||'';
+  addProposalRow({description:room?`${room}: `:'',qty:1,cost:0});
+  const rows=[...document.querySelectorAll('#proposalItems tr')];
+  const row=rows[rows.length-1];
+  const input=row?.querySelector('.item-description');
+  if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}
 }
 function activeAssemblyTemplate(){return ASSEMBLY_TEMPLATES.find(t=>t.id===$('assemblyTemplate').value)||ASSEMBLY_TEMPLATES[0]}
 function assemblyCandidates(){
@@ -1639,6 +1661,11 @@ function renderAssemblyBuilder(){
   if(sizes.includes(oldSize))$('assemblySize').value=oldSize;
   const template=activeAssemblyTemplate();
   $('assemblyControls').closest('label').style.display=template.controls?'flex':'none';
+  const usesAmperage=['circuits','equipment'].includes(template.id);
+  $('assemblyAmperageLabel').style.display=usesAmperage?'flex':'none';
+  const customAmp=$('assemblyAmperage').value==='custom';
+  $('assemblyCustomAmperageLabel').style.display=usesAmperage&&customAmp?'flex':'none';
+  const amperage=usesAmperage?(customAmp?$('assemblyCustomAmperage').value.trim():$('assemblyAmperage').value):'';
   const controls=Math.max(0,Number($('assemblyControls').value)||0);
   const devices=Math.max(1,Number($('assemblyDevices').value)||1);
   const room=$('assemblyRoom').value.trim();
@@ -1650,8 +1677,11 @@ function renderAssemblyBuilder(){
     const sized=[size, noun].filter(Boolean).join(' ');
     if(template.id==='switch-device')description=`Wire ${controls} ${controls===1?'switch':'switches'} for ${devices} ${sized}`;
     else if(template.id==='receptacles')description=`Wire ${devices} ${sized}`;
-    else if(template.id==='circuits')description=`Wire ${devices} ${sized}`;
-    else if(template.id==='equipment')description=`Wire for ${devices===1?sized:`${devices} ${sized}`}`;
+    else if(template.id==='circuits'){
+      const circuitNoun=devices===1?'circuit':'circuits';
+      description=`Wire ${devices}${amperage?' '+amperage:''} ${circuitNoun} for ${sized}`;
+    }
+    else if(template.id==='equipment')description=`Wire ${devices}${amperage?' '+amperage:''} ${devices===1?'circuit':'circuits'} for ${sized}`;
     else if(template.id==='safety-low-voltage')description=`Provide ${devices} ${sized}`;
     else description=`Provide ${devices===1?sized:`${devices} ${sized}`}`;
     if(option)description+=` with ${option}`;
@@ -1670,6 +1700,7 @@ function addAssemblyToProposal(){
   if(!description){alert('Enter a line-item description.');return}
   const materialId=$('assemblyDevice').value||'';
   addProposalRow({materialId,description,qty:1,cost:activeAssemblyPrice});
+  if($('proposalRoom'))$('proposalRoom').value=$('assemblyRoom').value.trim();
   closeModal('assemblyBuilderModal');
 }
 
