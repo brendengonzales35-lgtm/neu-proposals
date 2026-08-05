@@ -1,4 +1,4 @@
-<!doctype html>
+l<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -62,8 +62,12 @@ img{max-width:100%}
   padding:18px 28px;display:flex;justify-content:space-between;align-items:center;
   position:sticky;top:0;z-index:10;backdrop-filter:blur(12px)
 }
-.topbar h1{margin:0;font-size:26px;letter-spacing:-.02em}
+.topbar>div:first-child{min-width:0}
+.topbar h1{margin:0;font-size:26px;letter-spacing:-.02em;overflow-wrap:anywhere}
 .eyebrow{margin:0 0 4px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+.topbar-datetime{min-width:210px;text-align:right;display:grid;justify-items:end;gap:3px}
+.topbar-datetime span{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.02em}
+.topbar-datetime strong{color:var(--navy);font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
 .content{max-width:1400px;margin:auto;padding:26px 28px 44px}
 .view{display:none}.view.active{display:block}
 .hero{
@@ -333,6 +337,9 @@ button,input,select,textarea{max-width:100%}
   .topbar{position:relative;top:auto;padding:11px 12px;gap:10px;align-items:center}
   .topbar h1{font-size:20px}
   .topbar .eyebrow{font-size:9px}
+  .topbar-datetime{min-width:0;justify-items:end}
+  .topbar-datetime span{font-size:9px;max-width:170px;white-space:nowrap}
+  .topbar-datetime strong{font-size:16px}
   .topbar>.actions{gap:6px;flex-wrap:nowrap}
   .topbar .btn{padding:9px 10px;font-size:12px;white-space:nowrap}
   .content{padding:12px 10px calc(24px + env(safe-area-inset-bottom))}
@@ -549,9 +556,9 @@ button,input,select,textarea{max-width:100%}
 <div class="main">
 <header class="topbar">
   <div><p class="eyebrow">NES PROPOSALS</p><h1 id="pageTitle">Dashboard</h1></div>
-  <div class="actions no-print">
-    <button class="btn btn-light" onclick="showView('proposalView');newProposal()"><span data-icon="file-plus"></span>New Proposal</button>
-    <button class="btn btn-primary" onclick="printProposal()"><span data-icon="printer"></span>Print / PDF</button>
+  <div class="topbar-datetime no-print" aria-live="polite">
+    <span id="topbarDate">Loading date…</span>
+    <strong id="topbarTime">--:--</strong>
   </div>
 </header>
 
@@ -559,7 +566,6 @@ button,input,select,textarea{max-width:100%}
 <section id="dashboardView" class="view active">
   <div class="hero">
     <div><h2>NES PROPOSALS</h2><p>Create customer-ready proposals and organize builders, jobs, materials, and pricing in one place.</p></div>
-    <div class="hero-stat"><span>Total Estimated Value</span><strong id="dashValue">$0.00</strong></div>
   </div>
   <div class="card-grid">
     <div class="card">
@@ -606,7 +612,7 @@ button,input,select,textarea{max-width:100%}
 
   <div class="card">
     <div class="section-head">
-      <div><span class="kicker">Room-by-room estimate</span><h3>Work Included</h3><p>Choose a room, then tap a saved work item or package from your Price Book.</p></div>
+      <div><span class="kicker">Room-by-room estimate</span><h3>Work Included</h3><p>Choose a room, then use Quick Pick, a package, or create a custom line. Custom lines are saved to your Price Book.</p></div>
     </div>
     <div class="scope-toolbar no-print">
       <label>Room / Section
@@ -1239,6 +1245,61 @@ function cleanLegacyRoomPrefix(description,room){
   return text.toLowerCase().startsWith(prefix.toLowerCase())?text.slice(prefix.length).trimStart():text;
 }
 
+function normalizeWorkItemName(value){
+  return String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
+}
+
+function saveCustomProposalRowToPriceBook(row){
+  if(!row)return null;
+  const descriptionInput=row.querySelector('.item-description');
+  const materialInput=row.querySelector('.item-select');
+  const costInput=row.querySelector('.item-cost');
+  const roomInput=row.querySelector('.item-room');
+  const name=String(descriptionInput?.value||'').trim().replace(/\s+/g,' ');
+  if(!name)return null;
+
+  const category=cleanProposalRoom(roomInput?.value);
+  const cost=Math.max(0,Number(costInput?.value)||0);
+  const autoMaterialId=row.dataset.autoMaterialId||'';
+  let material=autoMaterialId?materials.find(item=>item.id===autoMaterialId):null;
+  let changed=false;
+
+  if(material){
+    if(material.name!==name){material.name=name;changed=true}
+    if(material.category!==category){material.category=category;changed=true}
+    if(Number(material.cost)!==cost){material.cost=cost;changed=true}
+    material.active=true;
+    materialInput.value=material.id;
+  }else if(!materialInput?.value){
+    material=materials.find(item=>normalizeWorkItemName(item.name)===normalizeWorkItemName(name)&&cleanProposalRoom(item.category)===category);
+    if(material){
+      materialInput.value=material.id;
+      if((Number(material.cost)||0)===0&&cost>0){material.cost=cost;changed=true}
+    }else{
+      material={id:uid(),name,category,cost,singular:'',plural:'',favorite:false,active:true,lastUsed:Date.now()};
+      materials.unshift(material);
+      materialInput.value=material.id;
+      row.dataset.autoMaterialId=material.id;
+      changed=true;
+    }
+  }
+
+  if(changed){
+    DB.set('neuMaterialsV3',materials);
+    renderMaterials();
+    updateCounts();
+  }
+  return material;
+}
+
+function saveCustomProposalLinesToPriceBook(){
+  document.querySelectorAll('#proposalItems .proposal-item-row').forEach(row=>{
+    if(!row.querySelector('.item-select')?.value||row.dataset.autoMaterialId){
+      saveCustomProposalRowToPriceBook(row);
+    }
+  });
+}
+
 function refreshProposalRoomHeaders(){
   const body=$('proposalItems');
   if(!body)return;
@@ -1284,6 +1345,7 @@ function addProposalRow(item={}){
   const row=document.createElement('tr');
   row.className='proposal-item-row';
   row.dataset.room=room;
+  if(!item.materialId)row.dataset.customLine='true';
   row.innerHTML=`
     <td>
       <input class="item-room" type="hidden" value="${escapeHtml(room)}">
@@ -1311,6 +1373,8 @@ function addProposalRow(item={}){
     }
   });
   row.querySelectorAll('input').forEach(input=>input.addEventListener('input',calculateProposal));
+  row.querySelector('.item-description').addEventListener('change',()=>saveCustomProposalRowToPriceBook(row));
+  row.querySelector('.item-cost').addEventListener('change',()=>saveCustomProposalRowToPriceBook(row));
   row.querySelector('.icon-btn').addEventListener('click',()=>{row.remove();refreshProposalRoomHeaders();calculateProposal()});
   insertProposalRowInRoom(row,room);
   refreshProposalRoomHeaders();
@@ -1389,10 +1453,12 @@ function collectProposal(){
 }
 
 function saveProposal(){
-  const proposal=collectProposal();
+  let proposal=collectProposal();
   if(!proposal.customerName){alert('Enter a customer or client name.');return}
   if(!proposal.jobId&&!$('proposalBuilder').value.trim()){alert('Enter a builder or general contractor name, or select a saved job folder.');return}
   if(!proposal.jobId&&!$('projectName').value.trim()){alert('Enter a job name, or select a saved job folder.');return}
+  saveCustomProposalLinesToPriceBook();
+  proposal=collectProposal();
   if(!proposal.number)proposal.number=nextProposalNumber();
 
   let job=jobs.find(j=>j.id===proposal.jobId);
@@ -1563,586 +1629,4 @@ function moveProposalToJob(){
   renderJobs();
   refreshJobSelect();
   updateCounts();
-  alert(`Proposal ${p.number} moved to ${cleanBuilderName(job.builderName)} › ${cleanJobName(job.name)}.`);
-}
-
-function deleteProposal(id){
-  if(!confirm('Delete this proposal?'))return;
-  proposals=proposals.filter(p=>p.id!==id);
-  DB.set('neuProposalsV3',proposals);
-  renderProposals();
-  if($('jobsView').classList.contains('active'))renderJobs();
-  updateCounts();
-}
-
-function getJob(id){return jobs.find(job=>job.id===id)}
-
-function ensureJobsFromProposals(){
-  let changed=false;
-  proposals.forEach(proposal=>{
-    if(proposal.jobId&&getJob(proposal.jobId))return;
-    const name=cleanJobName(proposal.jobName||proposal.project||proposal.customerName||'Untitled');
-    const key=`${name}|${proposal.customerName||''}|${proposal.address||''}`.toLowerCase();
-    let job=jobs.find(j=>`${j.name}|${j.customerName||''}|${j.address||''}`.toLowerCase()===key);
-    if(!job){
-      job={id:uid(),name,builderName:cleanBuilderName(proposal.builderName),customerName:proposal.customerName||'',address:proposal.address||'',phone:proposal.phone||'',email:proposal.email||'',status:'Active',createdAt:proposal.updatedAt||Date.now()};
-      jobs.push(job);
-    }
-    proposal.jobId=job.id;
-    proposal.jobName=cleanJobName(job.name);
-    proposal.builderName=cleanBuilderName(job.builderName);
-    changed=true;
-  });
-  if(changed){DB.set('neuProposalsV3',proposals);DB.set('nesJobsV4',jobs)}
-}
-
-function groupJobsByBuilder(list=jobs){
-  const map=new Map();
-  list.forEach(job=>{
-    const builderName=cleanBuilderName(job.builderName);
-    if(!map.has(builderName))map.set(builderName,[]);
-    map.get(builderName).push(job);
-  });
-  return [...map.entries()]
-    .sort(([a],[b])=>a.localeCompare(b))
-    .map(([builderName,builderJobs])=>({builderName,jobs:builderJobs.sort((a,b)=>cleanJobName(a.name).localeCompare(cleanJobName(b.name)))}));
-}
-
-function refreshJobSelect(){
-  const select=$('jobSelect');
-  if(!select)return;
-  const current=select.value;
-  const groups=groupJobsByBuilder();
-  select.innerHTML='<option value="">Create or select a job</option>'+groups.map(group=>`<optgroup label="${escapeHtml(group.builderName)}">${group.jobs.map(job=>`<option value="${job.id}">${escapeHtml(cleanJobName(job.name))} · ${escapeHtml(job.customerName||'No customer')}</option>`).join('')}</optgroup>`).join('');
-  if(jobs.some(job=>job.id===current))select.value=current;
-}
-
-function fillJob(){
-  const job=getJob($('jobSelect').value);
-  if(!job)return;
-  $('proposalBuilder').value=cleanBuilderName(job.builderName);
-  $('projectName').value=cleanJobName(job.name||'');
-  $('customerName').value=job.customerName||'';
-  $('customerPhone').value=job.phone||'';
-  $('customerEmail').value=job.email||'';
-  $('serviceAddress').value=job.address||'';
-}
-
-function openJobModal(id=null){
-  editingJobId=id;
-  const job=getJob(id);
-  $('jobModalTitle').textContent=job?'Edit Builder / Job':'Add Builder / Job';
-  $('jobBuilderName').value=job?.builderName||'';
-  $('jobName').value=job?.name||'';
-  $('jobCustomerName').value=job?.customerName||'';
-  $('jobAddress').value=job?.address||'';
-  $('jobPhone').value=job?.phone||'';
-  $('jobEmail').value=job?.email||'';
-  $('jobStatus').value=job?.status||'Active';
-  $('jobModal').classList.add('open');
-}
-
-function saveJob(){
-  const builderName=cleanBuilderName($('jobBuilderName').value);
-  const name=cleanJobName($('jobName').value);
-  const customerName=$('jobCustomerName').value.trim();
-  if(builderName==='Unassigned Builder'&&!$('jobBuilderName').value.trim()){alert('Enter the builder or general contractor name.');return}
-  if(!name||name==='Untitled'){alert('Enter a job name.');return}
-  if(!customerName){alert('Enter a customer or client name.');return}
-  const existing=getJob(editingJobId);
-  const job={id:editingJobId||uid(),name,builderName,customerName,address:$('jobAddress').value.trim(),phone:$('jobPhone').value.trim(),email:$('jobEmail').value.trim(),status:$('jobStatus').value,createdAt:existing?.createdAt||Date.now()};
-  const index=jobs.findIndex(j=>j.id===job.id);
-  if(index>=0)jobs[index]=job;else jobs.unshift(job);
-  proposals.filter(p=>p.jobId===job.id).forEach(p=>{p.jobName=cleanJobName(job.name);p.builderName=builderName});
-  DB.set('nesJobsV4',jobs);
-  DB.set('neuProposalsV3',proposals);
-  expandedBuilders.add(builderName);
-  expandedJobs.add(job.id);
-  closeModal('jobModal');
-  refreshJobSelect();
-  renderJobs();
-  renderProposals();
-  updateCounts();
-}
-
-function renderJobs(){
-  const container=$('builderFolders');
-  if(!container)return;
-  const query=($('jobSearch')?.value||'').trim().toLowerCase();
-  const matchedJobs=jobs.filter(job=>{
-    const related=proposals.filter(p=>p.jobId===job.id);
-    const proposalText=related.map(p=>`${p.number} ${p.status} ${p.customerName}`).join(' ');
-    return `${job.builderName} ${job.name} ${job.customerName} ${job.address} ${job.status} ${proposalText}`.toLowerCase().includes(query);
-  });
-  const groups=groupJobsByBuilder(matchedJobs);
-  if(!folderStateInitialized){
-    folderStateInitialized=true;
-  }
-  if(query){groups.forEach(group=>{expandedBuilders.add(group.builderName);group.jobs.forEach(job=>expandedJobs.add(job.id))})}
-  container.innerHTML=groups.length?groups.map(group=>renderBuilderFolder(group)).join(''):'<div class="folder-empty">No builder or job folders found. Click “Add Builder / Job” to create one.</div>';
-  if($('builderCount'))$('builderCount').textContent=groupJobsByBuilder().length;
-}
-
-function renderBuilderFolder(group){
-  const builderJobs=group.jobs;
-  const builderProposals=builderJobs.flatMap(job=>proposals.filter(p=>p.jobId===job.id));
-  const total=builderProposals.reduce((sum,p)=>sum+(Number(p.total)||0),0);
-  const expanded=expandedBuilders.has(group.builderName);
-  return `<section class="builder-folder ${expanded?'expanded':''}" data-builder-folder="${escapeHtml(group.builderName)}">
-    <button class="builder-folder-head" aria-expanded="${expanded}" onclick="toggleBuilderFolder('${encodeURIComponent(group.builderName).replace(/'/g,'%27')}')">
-      <span class="folder-title">${iconSvg('building')}<span><span class="folder-name">${escapeHtml(group.builderName)}</span><span class="folder-meta">${builderJobs.length} job${builderJobs.length===1?'':'s'} · ${builderProposals.length} proposal${builderProposals.length===1?'':'s'} · ${money(total)}</span></span></span>
-      <span class="folder-chevron">${iconSvg('chevron')}</span>
-    </button>
-    <div class="builder-folder-body">${builderJobs.map(renderJobFolder).join('')}</div>
-  </section>`;
-}
-
-function renderJobFolder(job){
-  const jobProposals=proposals.filter(p=>p.jobId===job.id).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
-  const total=jobProposals.reduce((sum,p)=>sum+(Number(p.total)||0),0);
-  const expanded=expandedJobs.has(job.id);
-  return `<article id="job-folder-${job.id}" class="job-folder ${expanded?'expanded':''}">
-    <div class="job-folder-head">
-      <div class="job-folder-main" role="button" tabindex="0" aria-expanded="${expanded}" onclick="toggleJobFolder('${job.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleJobFolder('${job.id}')}">
-        <span class="job-folder-icon">${iconSvg('folder')}</span>
-        <span><span class="job-folder-name">${escapeHtml(cleanJobName(job.name))}</span><span class="job-folder-sub">${escapeHtml(job.customerName||'No customer')} · ${escapeHtml(job.address||'No address')} · ${jobProposals.length} proposal${jobProposals.length===1?'':'s'} · ${money(total)} · ${escapeHtml(job.status||'Active')}</span></span>
-      </div>
-      <div class="job-folder-actions" aria-label="Job actions">
-        <button class="folder-mini-btn icon-only" aria-label="${expanded?'Hide':'Show'} proposals" title="${expanded?'Hide':'Show'} proposals" onclick="toggleJobFolder('${job.id}')">${iconSvg(expanded?'chevron':'eye')}</button>
-        <button class="folder-mini-btn primary icon-only" aria-label="New proposal in this job" title="New proposal in this job" onclick="newProposalForJob('${job.id}')">${iconSvg('file-plus')}</button>
-        <button class="folder-mini-btn icon-only" aria-label="Edit job" title="Edit job" onclick="openJobModal('${job.id}')">${iconSvg('edit')}</button>
-        <button class="folder-mini-btn danger icon-only" aria-label="Delete job" title="Delete job" onclick="deleteJob('${job.id}')">${iconSvg('trash')}</button>
-      </div>
-    </div>
-    <div class="job-proposals">${jobProposals.length?jobProposals.map(p=>`<div class="job-proposal-row">
-      <div class="job-proposal-info"><strong>${escapeHtml(p.number)}</strong><span>${escapeHtml(p.date||'No date')}</span></div>
-      <div><span class="badge ${escapeHtml(p.status)}">${escapeHtml(p.status)}</span></div>
-      <div><strong>${money(p.total)}</strong></div>
-      <div>${proposalActionButtons(p.id,true)}</div>
-    </div>`).join(''):'<div class="job-empty">No proposals in this job folder yet.</div>'}</div>
-  </article>`;
-}
-
-function toggleBuilderFolder(encodedName){
-  const name=decodeURIComponent(encodedName);
-  if(expandedBuilders.has(name))expandedBuilders.delete(name);else expandedBuilders.add(name);
-  renderJobs();
-}
-
-function toggleJobFolder(id){
-  if(expandedJobs.has(id))expandedJobs.delete(id);else expandedJobs.add(id);
-  renderJobs();
-}
-
-function openJob(id){
-  const job=getJob(id);
-  if(!job)return;
-  expandedBuilders.add(cleanBuilderName(job.builderName));
-  expandedJobs.add(id);
-  renderJobs();
-  setTimeout(()=>$(`job-folder-${id}`)?.scrollIntoView({behavior:'smooth',block:'center'}),20);
-}
-
-function renderJobDetail(id){openJob(id)}
-
-function newProposalForJob(id){
-  showView('proposalView');
-  newProposal(id);
-}
-
-function deleteJob(id){
-  const count=proposals.filter(p=>p.jobId===id).length;
-  const message=count?`This job has ${count} proposal${count===1?'':'s'}. The proposals will remain but become unassigned. Delete the job folder?`:'Delete this job folder?';
-  if(!confirm(message))return;
-  proposals.filter(p=>p.jobId===id).forEach(p=>{p.jobId='';p.jobName=p.jobName||p.project||'Unassigned';p.builderName=p.builderName||'Unassigned Builder'});
-  jobs=jobs.filter(j=>j.id!==id);
-  expandedJobs.delete(id);
-  DB.set('nesJobsV4',jobs);
-  DB.set('neuProposalsV3',proposals);
-  refreshJobSelect();
-  renderJobs();
-  renderProposals();
-  updateCounts();
-}
-
-function pluralizeScopeDescription(text,qty,material){
-  const q=Math.max(1,Number(qty)||1);
-  let out=String(text||'').trim();
-  out=out.replace(/\b1\b/,String(q));
-  if(q>1){
-    const singular=String(material?.singular||'').trim();
-    const plural=String(material?.plural||'').trim();
-    if(singular&&plural){
-      const rx=new RegExp(`\\b${singular.replace(/[.*+?^${}()|[\\]\\]/g,'\\$&')}\\b`,'i');
-      out=out.replace(rx,plural);
-    }
-    out=out.replace(/\b1 switch\b/i,`${q} switches`).replace(/\b1 circuit\b/i,`${q} circuits`).replace(/\b1 receptacle\b/i,`${q} receptacles`);
-  }
-  return out;
-}
-function openMaterialModal(id=null){
-  editingMaterialId=id;
-  const material=materials.find(m=>m.id===id);
-  $('materialModalTitle').textContent=material?'Edit Work Item':'New Work Item';
-  $('materialName').value=material?.name||'';
-  $('materialCategory').value=material?.category||$('proposalRoom')?.value||'';
-  $('materialCost').value=material?.cost??'';
-  $('materialSingular').value=material?.singular||'';
-  $('materialPlural').value=material?.plural||'';
-  $('materialFavorite').checked=!!material?.favorite;
-  $('materialActive').checked=material?.active!==false;
-  $('materialModal').classList.add('open');
-}
-function saveMaterial(){
-  const name=$('materialName').value.trim();
-  if(!name){alert('Enter the proposal description.');return}
-  const old=materials.find(m=>m.id===editingMaterialId);
-  const material={id:editingMaterialId||uid(),name,category:$('materialCategory').value.trim()||'Custom',cost:Number($('materialCost').value)||0,singular:$('materialSingular').value.trim(),plural:$('materialPlural').value.trim(),favorite:$('materialFavorite').checked,active:$('materialActive').checked,lastUsed:old?.lastUsed||0};
-  const index=materials.findIndex(m=>m.id===material.id);
-  if(index>=0)materials[index]=material;else materials.unshift(material);
-  DB.set('neuMaterialsV3',materials);scheduleCloudSave();closeModal('materialModal');renderMaterials();renderScopePicker();updateCounts();
-}
-function deleteMaterial(id){
-  if(!confirm('Delete this work item? Existing proposals will not change.'))return;
-  materials=materials.filter(m=>m.id!==id);packages=packages.map(p=>({...p,itemIds:(p.itemIds||[]).filter(x=>x!==id)}));
-  DB.set('neuMaterialsV3',materials);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderMaterials();
-}
-function showPriceBookPanel(panel){
-  const isPackages=panel==='packages';
-  $('scopeItemsPanel').classList.toggle('active',!isPackages);$('packagesPanel').classList.toggle('active',isPackages);
-  $('scopeItemsTab').classList.toggle('active',!isPackages);$('packagesTab').classList.toggle('active',isPackages);
-  if(isPackages)renderPackages();
-}
-function refreshCategoryFilter(){
-  const select=$('materialCategoryFilter');if(!select)return;const current=select.value;
-  const categories=[...new Set(materials.map(m=>m.category||'Custom'))].sort();
-  select.innerHTML='<option value="">All Rooms / Categories</option>'+categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-  if(categories.includes(current))select.value=current;
-}
-function renderMaterials(){
-  const query=($('materialSearch')?.value||'').toLowerCase();const category=$('materialCategoryFilter')?.value||'';
-  refreshCategoryFilter();
-  const rows=materials.filter(m=>`${m.name} ${m.category}`.toLowerCase().includes(query)&&(!category||m.category===category)).sort((a,b)=>(Number(b.favorite)-Number(a.favorite))||a.category.localeCompare(b.category)||a.name.localeCompare(b.name));
-  $('materialsTable').innerHTML=rows.length?rows.map(m=>`<tr><td data-label="Work Item"><strong>${escapeHtml(m.name)}</strong>${m.active===false?'<small style="display:block;color:var(--muted)">Hidden</small>':''}</td><td data-label="Room / Category">${escapeHtml(m.category||'Custom')}</td><td data-label="Default Price"><strong>${money(m.cost)}</strong></td><td data-label="Favorite">${m.favorite?'<span class="scope-favorite">★</span>':'—'}</td><td data-label="Actions"><div class="compact-actions"><button class="icon-btn" title="Edit" onclick="openMaterialModal('${m.id}')">✎</button><button class="icon-btn danger" title="Delete" onclick="deleteMaterial('${m.id}')">⌫</button></div></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No work items found.</td></tr>';
-  $('materialCount').textContent=materials.length;renderPackages();
-}
-function openScopePickerFromRoom(){
-  const room=$('proposalRoom')?.value.trim()||'';
-  if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}
-  openScopePicker(room);
-}
-function openScopePicker(room=''){
-  if(room)$('proposalRoom').value=room;selectedScopeItemId=null;selectedScopeCategory=room||'Favorites';$('scopePickerSearch').value='';$('scopeSelectedEditor').style.display='none';renderScopePicker();$('scopePickerModal').classList.add('open');
-}
-function scopeCategories(){return [...new Set(materials.filter(m=>m.active!==false).map(m=>m.category||'Custom'))].sort()}
-function renderScopePicker(){
-  const room=$('proposalRoom')?.value.trim()||'';const query=($('scopePickerSearch')?.value||'').toLowerCase();const cats=scopeCategories();
-  const buttons=['Favorites',...(room&&cats.includes(room)?[room]:[]),...cats.filter(c=>c!==room)];
-  $('scopePickerCategories').innerHTML=[...new Set(buttons)].map(c=>`<button class="scope-category ${selectedScopeCategory===c?'active':''}" onclick="selectedScopeCategory='${escapeHtml(c).replace(/'/g,"\\'")}';renderScopePicker()">${c==='Favorites'?'★ ':''}${escapeHtml(c)}</button>`).join('');
-  let rows=materials.filter(m=>m.active!==false&&`${m.name} ${m.category}`.toLowerCase().includes(query));
-  if(selectedScopeCategory==='Favorites')rows=rows.filter(m=>m.favorite);else rows=rows.filter(m=>m.category===selectedScopeCategory);
-  rows.sort((a,b)=>(Number(b.favorite)-Number(a.favorite))||(b.lastUsed||0)-(a.lastUsed||0)||a.name.localeCompare(b.name));
-  $('scopePickerResults').innerHTML=rows.length?rows.map(m=>`<button class="scope-item-card" onclick="selectScopeItem('${m.id}')"><div><h4>${m.favorite?'<span class="scope-favorite">★</span> ':''}${escapeHtml(m.name)}</h4><p>${escapeHtml(m.category||'Custom')}</p></div><div class="scope-price">${money(m.cost)}</div></button>`).join(''):'<div class="empty">No work items here yet.</div>';
-}
-function selectScopeItem(id){
-  const m=materials.find(x=>x.id===id);if(!m)return;selectedScopeItemId=id;$('scopeSelectedEditor').style.display='block';$('scopeSelectedName').textContent=m.name;$('scopeSelectedCategory').textContent=m.category||'Custom';$('scopeSelectedQty').value=1;$('scopeSelectedPrice').value=Number(m.cost)||0;$('scopeSelectedDescription').value=m.name;updateSelectedScope();
-}
-function updateSelectedScope(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const q=Math.max(1,Number($('scopeSelectedQty').value)||1);$('scopeSelectedDescription').value=pluralizeScopeDescription(m.name,q,m);$('scopeSelectedPrice').value=((Number(m.cost)||0)*q).toFixed(2)}
-function stepScopeQty(delta){$('scopeSelectedQty').value=Math.max(1,(Number($('scopeSelectedQty').value)||1)+delta);updateSelectedScope()}
-function addSelectedScopeToProposal(){const m=materials.find(x=>x.id===selectedScopeItemId);if(!m)return;const description=$('scopeSelectedDescription').value.trim();const price=Number($('scopeSelectedPrice').value)||0;if(!description){alert('Enter a description.');return}m.lastUsed=Date.now();DB.set('neuMaterialsV3',materials);addProposalRow({room:cleanProposalRoom($('proposalRoom')?.value),materialId:m.id,description,qty:1,cost:price});closeModal('scopePickerModal');scheduleCloudSave()}
-function addCustomItemForRoom(){
-  const room=$('proposalRoom')?.value.trim()||'';
-  if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}
-  addProposalRow({room,description:'',qty:1,cost:0});
-  const rows=[...document.querySelectorAll('#proposalItems .proposal-item-row')].filter(row=>cleanProposalRoom(row.querySelector('.item-room')?.value)===cleanProposalRoom(room));
-  const input=rows.at(-1)?.querySelector('.item-description');
-  if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}
-}
-function openPackageModal(id=null){editingPackageId=id;const pkg=packages.find(p=>p.id===id);$('packageModalTitle').textContent=pkg?'Edit Package':'New Package';$('packageName').value=pkg?.name||'';$('packageCategory').value=pkg?.category||$('proposalRoom')?.value||'';const selected=new Set(pkg?.itemIds||[]);$('packageItemChecklist').innerHTML=materials.filter(m=>m.active!==false).sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)).map(m=>`<label class="package-check"><input type="checkbox" value="${m.id}" ${selected.has(m.id)?'checked':''}><span><strong>${escapeHtml(m.name)}</strong><small style="display:block;color:var(--muted)">${escapeHtml(m.category)} · ${money(m.cost)}</small></span></label>`).join('');$('packageModal').classList.add('open')}
-function savePackage(){const name=$('packageName').value.trim();if(!name){alert('Enter a package name.');return}const itemIds=[...document.querySelectorAll('#packageItemChecklist input:checked')].map(i=>i.value);if(!itemIds.length){alert('Choose at least one work item.');return}const old=packages.find(p=>p.id===editingPackageId);const pkg={id:editingPackageId||uid(),name,category:$('packageCategory').value.trim()||'Custom',itemIds,lastUsed:old?.lastUsed||0};const i=packages.findIndex(p=>p.id===pkg.id);if(i>=0)packages[i]=pkg;else packages.unshift(pkg);DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packageModal');renderPackages()}
-function deletePackage(id){if(!confirm('Delete this package?'))return;packages=packages.filter(p=>p.id!==id);DB.set('nesPackagesV1',packages);scheduleCloudSave();renderPackages()}
-function renderPackages(){const el=$('packagesList');if(!el)return;el.innerHTML=packages.length?packages.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);const total=items.reduce((sum,m)=>sum+(Number(m.cost)||0),0);return `<div class="package-card"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category||'Custom')} · ${items.length} items · ${money(total)}</small></div><div class="compact-actions"><button class="icon-btn" onclick="openPackageModal('${p.id}')">✎</button><button class="icon-btn danger" onclick="deletePackage('${p.id}')">⌫</button></div></div><ul>${items.map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></div>`}).join(''):'<div class="empty">No packages yet. Create a package for the room combinations you use repeatedly.</div>'}
-function openPackagePickerFromRoom(){const room=$('proposalRoom')?.value.trim()||'';if(!room){alert('Choose a room or section first.');$('proposalRoom')?.focus();return}$('packagePickerRoomText').textContent=`Showing packages for ${room}.`;let rows=packages.filter(p=>!room||p.category===room);if(!rows.length)rows=packages;$('packagePickerList').innerHTML=rows.length?rows.map(p=>{const items=(p.itemIds||[]).map(id=>materials.find(m=>m.id===id)).filter(Boolean);return `<button class="package-card" style="text-align:left;width:100%" onclick="addPackageToProposal('${p.id}')"><div class="package-card-head"><div><h4 style="margin:0">${escapeHtml(p.name)}</h4><small>${escapeHtml(p.category)} · ${items.length} items</small></div><strong>${money(items.reduce((s,m)=>s+(Number(m.cost)||0),0))}</strong></div><ul>${items.slice(0,5).map(m=>`<li>${escapeHtml(m.name)}</li>`).join('')}</ul></button>`}).join(''):'<div class="empty">No packages have been created yet.</div>';$('packagePickerModal').classList.add('open')}
-function addPackageToProposal(id){const pkg=packages.find(p=>p.id===id);if(!pkg)return;const room=cleanProposalRoom($('proposalRoom')?.value||pkg.category);(pkg.itemIds||[]).map(itemId=>materials.find(m=>m.id===itemId)).filter(Boolean).forEach(m=>addProposalRow({room,materialId:m.id,description:m.name,qty:1,cost:Number(m.cost)||0}));pkg.lastUsed=Date.now();DB.set('nesPackagesV1',packages);scheduleCloudSave();closeModal('packagePickerModal')}
-function openAssemblyBuilderFromRoom(){openScopePickerFromRoom()}
-function loadSettings(){
-  $('settingCompany').value=settings.company||'';
-  $('settingPhone').value=settings.phone||'';
-  $('settingEmail').value=settings.email||'';
-  $('settingContactName').value=settings.contactName||'';
-  $('settingLicense').value=settings.license||'';
-  $('settingAddress').value=settings.address||'';
-  $('settingTerms').value=settings.terms||'';
-  $('brandName').textContent='NES PROPOSALS';
-  renderLogo();
-}
-
-function saveSettings(){
-  settings={
-    ...settings,
-    company:$('settingCompany').value.trim(),
-    phone:$('settingPhone').value.trim(),
-    email:$('settingEmail').value.trim(),
-    contactName:$('settingContactName').value.trim(),
-    license:$('settingLicense').value.trim(),
-    address:$('settingAddress').value.trim(),
-    terms:$('settingTerms').value
-  };
-  DB.set('neuSettingsV3',settings);
-  loadSettings();
-  alert('Settings saved.');
-}
-
-function handleLogoUpload(event){
-  // The approved PDF logo is locked in so it cannot disappear or be replaced by stale browser data.
-  event.target.value='';
-  settings.logo=REFERENCE_LOGO;
-  DB.set('neuSettingsV3',settings);
-  renderLogo();
-  alert('The exact long logo from your proposal PDF is already installed.');
-}
-
-function placeLogo(containerId){
-  const container=$(containerId);
-  if(!container)return;
-  const img=document.createElement('img');
-  img.src=REFERENCE_LOGO;
-  img.alt='NEU Electrical Solutions logo';
-  img.width=600;
-  img.height=148;
-  container.replaceChildren(img);
-}
-
-function renderLogo(){
-  settings.logo=REFERENCE_LOGO;
-  placeLogo('brandLogo');
-  placeLogo('logoPreview');
-}
-
-function renderDashboard(){
-  const open=proposals.filter(p=>['Draft','Sent'].includes(p.status)).length;
-  const approved=proposals.filter(p=>['Approved','Completed'].includes(p.status)).length;
-  const value=proposals.reduce((sum,p)=>sum+(Number(p.total)||0),0);
-  const dashOpen=$('dashOpen');
-  const dashBuilders=$('dashCustomers');
-  const dashMaterials=$('dashMaterials');
-  const dashApproved=$('dashApproved');
-  if(dashOpen)dashOpen.textContent=open;
-  if(dashBuilders)dashBuilders.textContent=groupJobsByBuilder().length;
-  if(dashMaterials)dashMaterials.textContent=materials.length;
-  if(dashApproved)dashApproved.textContent=approved;
-  $('dashValue').textContent=money(value);
-  const recent=[...proposals].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
-  $('recentProposals').innerHTML=recent.length?recent.map(p=>`
-    <div class="recent-item">
-      <div><strong>${escapeHtml(p.number)} · ${escapeHtml(p.customerName)}</strong><span>${escapeHtml(cleanBuilderName(getJob(p.jobId)?.builderName||p.builderName))} › ${escapeHtml(cleanJobName(getJob(p.jobId)?.name||p.jobName||p.project||'Unassigned'))} · ${money(p.total)}</span></div>
-      <button class="icon-btn" title="Open proposal" onclick="openProposal('${p.id}')">↗</button>
-    </div>`).join(''):'<div class="empty">No proposals yet.</div>';
-}
-
-function updateCounts(){
-  $('allProposalCount').textContent=proposals.length;
-  $('materialCount').textContent=materials.length;
-  if($('builderCount'))$('builderCount').textContent=groupJobsByBuilder().length;
-  renderDashboard();
-}
-
-function formatProposalDate(value){
-  if(!value)return '';
-  const parts=String(value).split('-');
-  if(parts.length!==3)return value;
-  return `${parts[1]}/${parts[2]}/${parts[0]}`;
-}
-
-function buildPrintPreview(){
-  const proposal=collectProposal();
-  const companyName=settings.company||'Neu Electrical Solutions';
-  const companyLines=[
-    settings.address,
-    settings.phone,
-    settings.email,
-    settings.license?`License: ${settings.license}`:''
-  ].filter(Boolean);
-
-  placeLogo('printLogo');
-  $('printCompanyDetails').textContent=companyLines.join('\n');
-  $('printSubmittedDate').textContent=formatProposalDate(proposal.date);
-  $('printCustomerName').textContent=proposal.customerName||'';
-  $('printPayableTo').textContent=companyName;
-  $('printProposalNumber').textContent=proposal.number||'';
-  $('printProject').textContent=[
-    cleanJobName(proposal.project||proposal.jobName||''),
-    proposal.address||''
-  ].filter(Boolean).join('\n');
-  $('printDueDate').textContent=formatProposalDate(proposal.dueDate);
-
-  if(proposal.items.length){
-    const roomOrder=[];
-    const roomGroups=new Map();
-    proposal.items.forEach(item=>{
-      const room=cleanProposalRoom(item.room);
-      if(!roomGroups.has(room)){roomGroups.set(room,[]);roomOrder.push(room)}
-      roomGroups.get(room).push(item);
-    });
-    $('printItems').innerHTML=roomOrder.map(room=>{
-      const roomRows=roomGroups.get(room).map(item=>{
-        const description=item.qty>1?`${item.qty} ${item.description}`:item.description;
-        const lineTotal=item.qty*item.cost;
-        const displayedPrice=lineTotal?money(lineTotal):'';
-        return `<tr class="proposal-item-print-row"><td>${escapeHtml(description)}</td><td>${displayedPrice}</td></tr>`;
-      }).join('');
-      return `<tr class="proposal-room-print-row"><td colspan="2">${escapeHtml(room)}</td></tr>${roomRows}`;
-    }).join('');
-  }else{
-    $('printItems').innerHTML='<tr class="proposal-item-print-row"><td></td><td></td></tr>';
-  }
-
-  $('printNotes').textContent=proposal.notes||'';
-  $('printSubtotal').textContent=money(proposal.subtotal||0);
-  $('printAdjustment').textContent=money(proposal.adjustment||0);
-  $('printTotal').textContent=money(proposal.total);
-  const contact=settings.contactName||'us';
-  $('printFooter').textContent=settings.phone
-    ?`If you have any questions concerning this proposal, contact ${contact} at ${settings.phone}.`
-    :'Thank you for the opportunity to provide this proposal.';
-}
-
-function printProposal(){
-  buildPrintPreview();
-  window.print();
-}
-
-function exportData(){
-  const data={version:6,exportedAt:new Date().toISOString(),materials,packages,customers,jobs,proposals,settings};
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download='neu-estimate-pro-backup.json';
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function importData(event){
-  const file=event.target.files?.[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async()=>{
-    try{
-      const data=JSON.parse(reader.result);
-      if(!confirm('Importing will replace your current app data. Continue?'))return;
-      materials=Array.isArray(data.materials)?data.materials:materials;
-    packages=Array.isArray(data.packages)?data.packages:packages;
-    migratePriceBook();
-      customers=Array.isArray(data.customers)?data.customers:customers;
-      jobs=(Array.isArray(data.jobs)?data.jobs:jobs).map(job=>({...job,name:cleanJobName(job?.name),builderName:cleanBuilderName(job?.builderName||job?.builder)}));
-      proposals=Array.isArray(data.proposals)?data.proposals:proposals;
-      settings=data.settings||settings;
-      DB.set('neuMaterialsV3',materials);
-      DB.set('nesPackagesV1',packages);
-      DB.set('neuCustomersV3',customers);
-      DB.set('nesJobsV4',jobs);
-      DB.set('neuProposalsV3',proposals);
-      DB.set('neuSettingsV3',settings);
-      await saveCloudState(true);
-      location.reload();
-    }catch{
-      alert('That file is not a valid NEU backup.');
-    }
-  };
-  reader.readAsText(file);
-}
-
-async function resetAllData(){
-  if(!confirm('This will delete all builders, jobs, proposals, materials, and settings for everyone using this website. Continue?'))return;
-  materials=defaultMaterials();
-  packages=[];
-  customers=[];
-  jobs=[];
-  proposals=[];
-  settings={...DEFAULT_SETTINGS,logo:REFERENCE_LOGO};
-  cloudApplying=true;
-  try{
-    Store.setItem('neuMaterialsV3',JSON.stringify(materials));
-    Store.setItem('nesPackagesV1',JSON.stringify(packages));
-    Store.setItem('neuCustomersV3',JSON.stringify(customers));
-    Store.setItem('nesJobsV4',JSON.stringify(jobs));
-    Store.setItem('neuProposalsV3',JSON.stringify(proposals));
-    Store.setItem('neuSettingsV3',JSON.stringify(settings));
-  }finally{cloudApplying=false}
-  await saveCloudState(true);
-  location.reload();
-}
-
-function closeModal(id){$(id).classList.remove('open')}
-
-function escapeHtml(value){
-  return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
-}
-
-function iconSvg(name,size=18){
-  const paths={
-    home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10.5V20h14v-9.5"/><path d="M9 20v-6h6v6"/>',
-    plus:'<path d="M12 5v14M5 12h14"/>',
-    building:'<path d="M4 21V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v16"/><path d="M9 21v-4h4v4M8 7h1M12 7h1M8 11h1M12 11h1M17 9h2a1 1 0 0 1 1 1v11M3 21h18"/>',
-    files:'<path d="M15 2H6a2 2 0 0 0-2 2v12"/><path d="M8 6h9l3 3v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/><path d="M14 6v4h4"/>',
-    file:'<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M9 13h6M9 17h6"/>',
-    'file-plus':'<path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M12 11v6M9 14h6"/>',
-    package:'<path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="m3 8 9 5v9M21 8l-9 5M7.5 5.5l9 5"/>',
-    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/>',
-    printer:'<path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/>',
-    folder:'<path d="M3 5h6l2 2h10v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/>',
-    'folder-plus':'<path d="M3 5h6l2 2h10v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path d="M12 11v6M9 14h6"/>',
-    chevron:'<path d="m9 18 6-6-6-6"/>',
-    eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
-    edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>',
-    mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/>',
-    move:'<path d="M5 9h11M13 6l3 3-3 3M19 15H8M11 12l-3 3 3 3"/>',
-    trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 16h10l1-16M10 10v8M14 10v8"/>'
-  };
-  const body=paths[name]||paths.file;
-  return `<svg class="svg-icon" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${body}</svg>`;
-}
-
-function hydrateIcons(root=document){
-  root.querySelectorAll('[data-icon]').forEach(node=>{
-    node.innerHTML=iconSvg(node.dataset.icon);
-    node.removeAttribute('data-icon');
-  });
-}
-
-function showStartupError(error){
-  console.error('NES PROPOSALS startup error:',error);
-  const banner=document.createElement('div');
-  banner.setAttribute('role','alert');
-  banner.style.cssText='position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;border-radius:12px;padding:14px 16px;font-weight:700;box-shadow:0 12px 32px rgba(15,23,42,.18)';
-  banner.textContent='NES PROPOSALS recovered from a browser-data problem. Refresh once. Your buttons should remain available.';
-  document.body.appendChild(banner);
-}
-
-function startApp(){
-  hydrateIcons();
-  placeLogo('brandLogo');
-  ensureJobsFromProposals();
-  loadSettings();
-  refreshJobSelect();
-  renderMaterials();
-  renderProposals();
-  renderJobs();
-  updateCounts();
-  newProposal();
-  openRouteFromUrl();
-}
-
-try{startApp();connectSharedCloud()}catch(error){
-  showStartupError(error);
-  // Keep navigation usable even if old saved data contains something unexpected.
-  hydrateIcons();
-  placeLogo('brandLogo');
-  document.querySelectorAll('.nav [data-view]').forEach(link=>{
-    link.onclick=event=>{event.preventDefault();showView(link.dataset.view,true)};
-  });
-}
-</script>
-</body>
-</html>
+  alert(`Proposal ${p.number} moved to $
